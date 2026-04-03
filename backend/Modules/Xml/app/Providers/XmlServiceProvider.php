@@ -43,4 +43,13 @@ class XmlServiceProvider extends ModuleServiceProvider
     // {
     //     $schedule->command('inspire')->hourly();
     // }
+        public function register(): void
+    {
+        $this->app->register(RouteServiceProvider::class);
+    }
+ 
+    public function boot(): void
+    {
+        $this->loadMigrationsFrom(module_path('Xml', 'database/migrations'));
+    }
 }

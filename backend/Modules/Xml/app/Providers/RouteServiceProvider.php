@@ -9,6 +9,9 @@ class RouteServiceProvider extends ServiceProvider
 {
     protected string $name = 'Xml';
 
+    protected string $moduleNamespace = 'Modules\Xml\Http\Controllers';
+ 
+
     /**
      * Called before routes are registered.
      *
@@ -45,6 +48,9 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function mapApiRoutes(): void
     {
-        Route::middleware('api')->prefix('api')->name('api.')->group(module_path($this->name, '/routes/api.php'));
+        Route::prefix('api')
+            ->middleware('api')
+            ->namespace($this->moduleNamespace)
+            ->group(module_path('Xml', 'routes/api.php'));
     }
 }
