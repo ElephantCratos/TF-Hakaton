@@ -5,6 +5,8 @@ namespace Modules\Company\Http\Controllers;
 use Illuminate\Http\Request;
 use Modules\Core\Abstracts\Http\Controllers\BaseController;
 use Modules\Company\Services\CompanyService;
+use Modules\Company\Transformers\CompanyResource;
+use Modules\Company\Http\Requests\CompanyRequest;
 
 class CompanyController extends BaseController
 {
@@ -16,25 +18,32 @@ class CompanyController extends BaseController
         return response()->json(['companies' => $companies], 200);
     }
 
-    public function create(Request $request)
-    {
-        $company = $this->companyService->create($request->validate([
-            'code' => 'required|string|max:10|unique:companies,code',
-            'name' => 'required|string|max:255',
-        ]));
+    public function create(CompanyRequest $request)
+{
+    $result = $this->companyService->create($request->validated());
 
-        return $this->created(['company' => $company], 'Компания создана');
-    }
+    return $this->created(
+        [
+            'company' => new CompanyResource($result)
+        ],
+        'Компания создана'
+    );
+}
 
-    public function update(Request $request, int $id)
-    {
-        $company = $this->companyService->update($request->validate([
-            'code' => "required|string|max:10|unique:companies,code,{$id}",
-            'name' => 'required|string|max:255',
-        ]), $id);
+    public function update(CompanyRequest $request, int $id)
+{
+    $result = $this->companyService->update(
+        $request->validated(),
+        $id
+    );
 
-        return $this->success(['company' => $company], 'Компания обновлена');
-    }
+    return $this->success(
+        [
+            'company' => new CompanyResource($result)
+        ],
+        'Компания обновлена'
+    );
+}
 
     public function soft(int $id)
     {
