@@ -26,7 +26,7 @@ class ParticipantXmlParser
      *
      * @throws \InvalidArgumentException при ошибке разбора или неверном корне
      */
-    public function parse(string $xmlContent): array
+    public function parseMultiple(string $xmlContent): array
     {
         libxml_use_internal_errors(true);
         $xml = simplexml_load_string($xmlContent);
@@ -37,13 +37,28 @@ class ParticipantXmlParser
             throw new \InvalidArgumentException('XML parse error: ' . implode('; ', $errors));
         }
 
-        if ($xml->getName() !== 'Edu_Participant') {
+        $participants = [];
+
+        // Если корень — одиночный участник
+        if ($xml->getName() === 'Edu_Participant') {
+            $participants[] = $this->extractParticipant($xml);
+
+        // Если корень — блок участников
+        } elseif ($xml->getName() === 'Participants') {
+            foreach ($xml->children() as $child) {
+                if ($child->getName() !== 'Edu_Participant') {
+                    continue; // игнорируем неожиданные теги
+                }
+                $participants[] = $this->extractParticipant($child);
+            }
+
+        } else {
             throw new \InvalidArgumentException(
-                "Ожидался корневой тег <Edu_Participant>, получен <{$xml->getName()}>"
+                "Неподдерживаемый корневой тег: <{$xml->getName()}>. Ожидались: Edu_Participant или Participants."
             );
         }
 
-        return $this->extractParticipant($xml);
+        return $participants;
     }
 
     private function extractParticipant(SimpleXMLElement $xml): array

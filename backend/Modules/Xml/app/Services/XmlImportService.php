@@ -91,84 +91,92 @@ class XmlImportService
         }
 
         match ($rootTag) {
-            'Edu_Participant' => $this->importParticipant($content, $batch),
-            'Edu_Course'      => $this->importCourse($content, $batch),
-            default           => $this->logEntry(
+            'Edu_Participant', 'Participants' => $this->importParticipants($content, $batch),
+            'Edu_Course', 'Courses' => $this->importCourses($content, $batch),
+            default => $this->logEntry(
                 $batch->id, 'unknown', null, null,
                 XmlImportLog::STATUS_ERROR,
-                "Неизвестный тип XML: <{$rootTag}>. Поддерживаются: Edu_Participant, Edu_Course."
+                "Неизвестный тип XML: <{$rootTag}>. Поддерживаются: Edu_Participant, Participants, Edu_Course, Courses."
             ),
         };
     }
 
-    private function importParticipant(string $content, XmlImportBatch $batch): void
+        private function importParticipants(string $content, XmlImportBatch $batch): void
     {
+        // Парсим XML в массив
         try {
-            $data = $this->participantParser->parse($content);
+            $participants = $this->participantParser->parseMultiple($content);
         } catch (\InvalidArgumentException $e) {
             $this->logEntry($batch->id, 'Employee', null, null,
                 XmlImportLog::STATUS_ERROR, 'Ошибка разбора XML: ' . $e->getMessage());
             return;
         }
 
-        try {
-            DB::beginTransaction();
-            $result = $this->employeeImporter->import($data, $batch->id);
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('[XmlImport] Employee import failed', [
-                'batch_id' => $batch->id,
-                'error'    => $e->getMessage(),
-            ]);
-            $this->logEntry($batch->id, 'Employee', $data['external_id'], null,
-                XmlImportLog::STATUS_ERROR, 'Ошибка БД: ' . $e->getMessage());
-            return;
-        }
+        foreach ($participants as $data) {
+            try {
+                DB::beginTransaction();
+                $result = $this->employeeImporter->import($data, $batch->id);
+                DB::commit();
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::error('[XmlImport] Employee import failed', [
+                    'batch_id' => $batch->id,
+                    'external_id' => $data['external_id'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                $this->logEntry($batch->id, 'Employee', $data['external_id'] ?? null, null,
+                    XmlImportLog::STATUS_ERROR, 'Ошибка БД: ' . $e->getMessage());
+                continue;
+            }
 
-        $this->logEntry(
-            $batch->id,
-            'Employee',
-            $data['external_id'],
-            $result['operation_type'],
-            $result['status'],
-            $result['message'],
-        );
+            $this->logEntry(
+                $batch->id,
+                'Employee',
+                $data['external_id'],
+                $result['operation_type'],
+                $result['status'],
+                $result['message'],
+            );
+        }
     }
 
-    private function importCourse(string $content, XmlImportBatch $batch): void
+        
+    private function importCourses(string $content, XmlImportBatch $batch): void
     {
         try {
-            $data = $this->courseParser->parse($content);
+            $courses = $this->courseParser->parseMultiple($content);
         } catch (\InvalidArgumentException $e) {
             $this->logEntry($batch->id, 'Course', null, null,
                 XmlImportLog::STATUS_ERROR, 'Ошибка разбора XML: ' . $e->getMessage());
             return;
         }
 
-        try {
-            DB::beginTransaction();
-            $result = $this->courseImporter->import($data, $batch->id);
-            DB::commit();
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('[XmlImport] Course import failed', [
-                'batch_id' => $batch->id,
-                'error'    => $e->getMessage(),
-            ]);
-            $this->logEntry($batch->id, 'Course', $data['external_id'], null,
-                XmlImportLog::STATUS_ERROR, 'Ошибка БД: ' . $e->getMessage());
-            return;
-        }
+        foreach ($courses as $data) {
+            try {
+                DB::beginTransaction();
+                $result = $this->courseImporter->import($data, $batch->id);
+                DB::commit();
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::error('[XmlImport] Course import failed', [
+                    'batch_id' => $batch->id,
+                    'external_id' => $data['external_id'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                $this->logEntry($batch->id, 'Course', $data['external_id'] ?? null, null,
+                    XmlImportLog::STATUS_ERROR, 'Ошибка БД: ' . $e->getMessage());
+                continue;
+            }
 
-        $this->logEntry(
-            $batch->id,
-            'Course',
-            $data['external_id'],
-            $result['operation_type'],
-            $result['status'],
-            $result['message'],
-        );
+            $this->logEntry(
+                $batch->id,
+                'Course',
+                $data['external_id'],
+                $result['operation_type'],
+                $result['status'],
+                $result['message'],
+            );
+        }
     }
 
     /**
