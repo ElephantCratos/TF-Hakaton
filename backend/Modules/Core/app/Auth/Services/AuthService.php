@@ -19,8 +19,8 @@ class AuthService
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => $data['password'], // cast 'hashed' в модели
-            'role' => $data['role'] ?? Role::HR,
+            'password' => $data['password'],
+            'role' => Role::HR, 
         ]);
 
         $token = $user->createToken('auth-token')->plainTextToken;
@@ -44,6 +44,7 @@ class AuthService
             ]);
         }
 
+        // Удаляем старые токены при новом входе
         $user->tokens()->delete();
 
         $token = $user->createToken('auth-token')->plainTextToken;

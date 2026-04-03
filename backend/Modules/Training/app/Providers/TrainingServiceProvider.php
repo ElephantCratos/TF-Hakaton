@@ -4,6 +4,8 @@ namespace Modules\Training\Providers;
 
 use Nwidart\Modules\Support\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Modules\Training\Models\GroupParticipant;
+use Modules\Training\Observers\GroupParticipantObserver;
 
 class TrainingServiceProvider extends ModuleServiceProvider
 {
@@ -34,6 +36,11 @@ class TrainingServiceProvider extends ModuleServiceProvider
         RouteServiceProvider::class,
     ];
 
+
+    public function boot(): void
+    {
+        GroupParticipant::observe(GroupParticipantObserver::class);
+    }
     /**
      * Define module schedules.
      * 

@@ -1,8 +1,23 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Training\Http\Controllers\TrainingController;
+use Modules\Training\Http\Controllers\TrainingGroupController;
+use Modules\Training\Http\Controllers\GroupParticipantController;
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('trainings', TrainingController::class)->names('training');
+
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('training-groups', [TrainingGroupController::class, 'index']);
+    Route::post('training-groups', [TrainingGroupController::class, 'store']);
+    Route::get('training-groups/{training_group}', [TrainingGroupController::class, 'show']);
+    Route::put('training-groups/{training_group}', [TrainingGroupController::class, 'update']);
+    Route::delete('training-groups/{training_group}', [TrainingGroupController::class, 'destroy']);
+    Route::patch('training-groups/{training_group}/status', [TrainingGroupController::class, 'changeStatus']);
+    Route::get('training-groups/{training_group}/conflicts', [TrainingGroupController::class, 'conflicts']);
+
+    Route::get('training-groups/{training_group}/participants', [GroupParticipantController::class, 'index']);
+    Route::post('training-groups/{training_group}/participants', [GroupParticipantController::class, 'store']);
+    Route::patch('training-groups/{training_group}/participants/{participant}', [GroupParticipantController::class, 'update']);
+    Route::delete('training-groups/{training_group}/participants/{participant}', [GroupParticipantController::class, 'destroy']);
 });

@@ -25,19 +25,11 @@ return new class extends Migration
                 ->constrained('specifications')
                 ->nullOnDelete();
 
-            $table->foreignId('status_id')
-                ->nullable()
-                ->constrained('statuses')
-                ->nullOnDelete();
+            $table->enum('status', array_column(Modules\Training\Enums\TrainingStatus::cases(), 'value'))
+            ->default(Modules\Training\Enums\TrainingStatus::Planned->value);
 
             $table->date('start_date');
             $table->date('end_date');
-
-            $table->decimal('price_per_person', 12, 2);
-
-            $table->integer('participant_count')->default(0);
-            $table->decimal('total_cost', 14, 2)->default(0);
-            $table->decimal('average_progress', 5, 2)->default(0);
 
             $table->string('gantt_color', 20)->nullable();
 
