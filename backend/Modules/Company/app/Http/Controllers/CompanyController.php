@@ -2,55 +2,49 @@
 
 namespace Modules\Company\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Core\Abstracts\Http\Controllers\BaseController;
+use Modules\Company\Services\CompanyService;
 
-class CompanyController extends Controller
+class CompanyController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(private readonly CompanyService $companyService) {}
+
+    public function list()
     {
-        return view('company::index');
+        $companies = $this->companyService->list();
+        return response()->json(['companies' => $companies], 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(Request $request)
     {
-        return view('company::create');
+        $company = $this->companyService->create($request->validate([
+            'code' => 'required|string|max:10|unique:companies,code',
+            'name' => 'required|string|max:255',
+        ]));
+
+        return $this->created(['company' => $company], 'Компания создана');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request) {}
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
+    public function update(Request $request, int $id)
     {
-        return view('company::show');
+        $company = $this->companyService->update($request->validate([
+            'code' => "required|string|max:10|unique:companies,code,{$id}",
+            'name' => 'required|string|max:255',
+        ]), $id);
+
+        return $this->success(['company' => $company], 'Компания обновлена');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
+    public function soft(int $id)
     {
-        return view('company::edit');
+        $company = $this->companyService->soft($id);
+        return $this->success(['company' => $company], 'Компания удалена (soft)');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
+    public function hard(int $id)
+    {
+        $company = $this->companyService->hard($id);
+        return $this->success(['company' => $company], 'Компания удалена полностью');
+    }
 }

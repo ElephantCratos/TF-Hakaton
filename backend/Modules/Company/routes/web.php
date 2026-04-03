@@ -3,6 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Company\Http\Controllers\CompanyController;
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('companies', CompanyController::class)->names('company');
+Route::prefix('v1')->group(function () {
+    Route::apiResource('companies', CompanyController::class)->names('company');
 });
