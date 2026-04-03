@@ -2,55 +2,75 @@
 
 namespace Modules\Employee\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Modules\Core\Abstracts\Http\Controllers\BaseController;
+use Modules\Employee\Services\EmployeeService;
+use Modules\Employee\Transformers\EmployeeResource;
+use Modules\Employee\Http\Requests\EmployeeRequest;
 
-class EmployeeController extends Controller
+class EmployeeController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        return view('employee::index');
+    public function __construct(
+        private readonly EmployeeService $employeeService,
+    ) {
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function list()
     {
-        return view('employee::create');
+        $result = $this->employeeService->list();
+
+        return response()->json([
+            'employees' => $result
+        ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request) {}
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
+    public function create(EmployeeRequest $request)
     {
-        return view('employee::show');
+        $result = $this->employeeService->create($request->validated());
+
+        return $this->created(
+            [
+                'employee' => new EmployeeResource($result)
+            ],
+            'Сотрудник создан'
+        );
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
+    public function update(EmployeeRequest $request, int $id)
     {
-        return view('employee::edit');
+        $result = $this->employeeService->update(
+            $request->validated(),
+            $id
+        );
+
+        return $this->success(
+            [
+                'employee' => new EmployeeResource($result)
+            ],
+            'Сотрудник обновлён'
+        );
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
+    public function soft(int $id)
+    {
+        $result = $this->employeeService->soft($id);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
+        return $this->success(
+            [
+                'employee' => $result
+            ],
+            'Сотрудник удалён (soft)'
+        );
+    }
+
+    public function hard(int $id)
+    {
+        $result = $this->employeeService->hard($id);
+
+        return $this->success(
+            [
+                'employee' => $result
+            ],
+            'Сотрудник удалён'
+        );
+    }
 }
