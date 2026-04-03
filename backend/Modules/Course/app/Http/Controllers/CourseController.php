@@ -2,31 +2,76 @@
 
 namespace Modules\Course\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Modules\Core\Abstracts\Http\Controllers\BaseController;
+use Modules\Course\Services\CourseService;
+use Modules\Course\Transformers\CourseResource;
+use Modules\Course\Http\Requests\CourseRequest;
 use Illuminate\Http\Request;
 
-class CourseController extends Controller
+class CourseController extends BaseController
 {
+
+    public function __construct(
+        private readonly CourseService $couresService,
+    ) {
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function list()
     {
-        return view('course::index');
+        $result = $this->couresService->list();
+
+        return response()->json([
+            'courses' => $result
+        ], 200);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(CourseRequest $request)
     {
-        return view('course::create');
+        $result = $this->couresService->create($request->validated());
+
+        return $this->created(
+            [
+                'course' => new CourseResource($result)
+            ],
+            'Курс создан'
+        );
+    }
+
+    public function soft(int $courseId)
+    {
+        $result = $this->couresService->soft($courseId);
+
+        return $this->success(
+            [
+                'course' => $result
+            ],
+            'Курс удалён (soft)'
+        );
+    }
+
+    public function hard(int $courseId)
+    {
+        $result = $this->couresService->hard($courseId);
+
+        return $this->success(
+            [
+                'course' => $result
+            ],
+            'Курс удалён'
+        );
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) {}
+    public function store(Request $request)
+    {
+    }
 
     /**
      * Show the specified resource.
@@ -47,10 +92,20 @@ class CourseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {}
+    public function update(CourseRequest $request, int $id)
+    {
+        $result = $this->couresService->update($request->validated(), $id);
+        
+        return $this->success([
+            'updated course' => $result],
+            'Курс обновлён'
+        );
+    }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {}
+    public function destroy($id)
+    {
+    }
 }
