@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.0",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "nwidart/laravel-modules": "^13.0"
     },
@@ -27,6 +28,8 @@
         "psr-4": {
             "App\\": "app/",
             "Modules\\Xml\\": "Modules/Xml/app/",
+            "Modules\\Core\\": "Modules/Core/app/",
+            
             "Modules\\Employee\\": "Modules/Employee/app/",
             "Modules\\Company\\": "Modules/Company/app/",
             "Modules\\Course\\": "Modules/Course/app/",

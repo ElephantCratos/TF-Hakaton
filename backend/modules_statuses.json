@@ -7,5 +7,6 @@
     "Company": true,
     "Course": true,
     "Training": true,
-    "Specification": true
+    "Specification": true,
+    "Core": true
 }
