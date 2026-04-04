@@ -15,6 +15,7 @@ class CourseService
     {
         $course = Course::findOrFail($id);
 
+        $course->code = $data['code'];
         $course->title = $data['title'];
         $course->description = $data['description'];
         $course->duration_days = $data['duration_days'];
@@ -28,6 +29,7 @@ class CourseService
     {
 
         $cource = Course::create([
+            'code' => $data['code'],
             'title' => $data['title'],
             'description' => $data['description'],
             'duration_days' => $data['duration_days'],
@@ -47,7 +49,7 @@ class CourseService
 
     public function hard(int $id) 
     {
-        $course = Course::findOrFail($id);
+        $course = Course::withTrashed()->findOrFail($id);
         
         $deleted = $course;
 

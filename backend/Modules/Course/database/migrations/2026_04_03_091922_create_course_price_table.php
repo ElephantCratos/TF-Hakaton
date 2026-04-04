@@ -23,7 +23,7 @@ return new class extends Migration
             $table->date('valid_from');
             $table->date('valid_to')->nullable();
 
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
 
             $table->index(['course_id', 'valid_from']);
         });

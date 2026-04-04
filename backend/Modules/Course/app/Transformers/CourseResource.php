@@ -12,6 +12,7 @@ class CourseResource extends BaseResource
     {
         return [
             'id' => $this->id,
+            'code' => $this->code,
             'title' => $this->title,
             'description' => $this->description,
             'duration_days' => $this->duration_days,
