@@ -24,10 +24,6 @@ return new class extends Migration
 
             $table->decimal('completion_percent', 5, 2)->default(0);
 
-            $table->foreignId('status_id')
-                ->nullable()
-                ->constrained('statuses')
-                ->nullOnDelete();
 
             $table->timestamp('enrolled_at')->nullable();
             $table->timestamp('completed_at')->nullable();

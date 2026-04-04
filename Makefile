@@ -14,22 +14,13 @@ up: ## Поднять всё: Docker (nginx, php, mysql) + frontend (npm dev)
 	@echo ""
 	@echo "Всё запущено"
 	@echo "    Backend API  → http://localhost:8080"
-	@echo "    Frontend     → http://localhost:5173"
 	@echo "    MySQL        → localhost:3306"
 
 .PHONY: up-back
 up-back: ## Поднять только бэкенд (nginx + php + mysql)
 	$(COMPOSE) up -d --build nginx php mysql
 
-.PHONY: up-front
-up-front: ## Поднять только фронтенд
-	$(COMPOSE) up -d --build frontend
 
-# ─── 2. Рестарт фронтенда ────────────────────────────────────────
-.PHONY: restart-front
-restart-front: ## Перезапустить фронтенд (Vue / Vite)
-	$(COMPOSE) restart frontend
-	@echo "🔄  Frontend перезапущен"
 
 # ─── 3. Рестарт бэкенда ──────────────────────────────────────────
 .PHONY: restart-back
@@ -48,10 +39,6 @@ down: ## Остановить и удалить все контейнеры
 	$(COMPOSE) down
 	@echo "⬇️   Все контейнеры остановлены"
 
-.PHONY: down-front
-down-front: ## Остановить только фронтенд
-	$(COMPOSE) stop frontend
-	@echo "  Frontend остановлен"
 
 .PHONY: down-back
 down-back: ## Остановить только бэкенд
@@ -72,9 +59,6 @@ logs: ## Логи всех сервисов
 logs-back: ## Логи бэкенда (php + nginx)
 	$(COMPOSE) logs -f --tail=100 php nginx
 
-.PHONY: logs-front
-logs-front: ## Логи фронтенда (Vite)
-	$(COMPOSE) logs -f --tail=100 frontend
 
 .PHONY: logs-db
 logs-db: ## Логи MySQL
@@ -83,10 +67,6 @@ logs-db: ## Логи MySQL
 .PHONY: shell-php
 shell-php: ## Зайти в контейнер PHP
 	docker exec -it $(BACKEND) sh
-
-.PHONY: shell-front
-shell-front: ## Зайти в контейнер фронтенда
-	docker exec -it $(FRONTEND) sh
 
 .PHONY: shell-db
 shell-db: ## Открыть MySQL CLI
@@ -100,9 +80,6 @@ artisan: ## Выполнить artisan-команду: make artisan CMD="migrate
 composer: ## Выполнить composer-команду: make composer CMD="require laravel/sanctum"
 	docker exec -it $(BACKEND) composer $(CMD)
 
-.PHONY: npm
-npm: ## Выполнить npm-команду в фронтенде: make npm CMD="install axios"
-	docker exec -it $(FRONTEND) npm $(CMD)
 
 .PHONY: migrate
 migrate: ## Запустить миграции Laravel

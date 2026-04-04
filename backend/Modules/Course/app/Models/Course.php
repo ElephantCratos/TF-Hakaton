@@ -40,4 +40,9 @@ class Course extends Model
     {
         return $this->hasMany(CoursePrice::class, 'course_id');
     }
+
+    public function getLastPrice() : ?string
+    {
+        return $this->price()->latest()->first()['price'];
+    }
 }
