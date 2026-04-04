@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('specifications', function (Blueprint $table) {
             $table->id();
 
-            $table->string('document_number', 50)->unique();
-            $table->date('specification_date');
+            $table->string('number', 50)->unique();
+            $table->date('date');
 
             $table->foreignId('company_id')
                 ->constrained('companies')
