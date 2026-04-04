@@ -16,6 +16,7 @@ class TrainingGroup extends Model implements CalculableContract
         'start_date',
         'end_date',
         'status',
+        'gantt_color',
     ];
 
     protected function casts(): array

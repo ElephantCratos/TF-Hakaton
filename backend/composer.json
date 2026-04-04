@@ -35,6 +35,7 @@
             "Modules\\Course\\": "Modules/Course/app/",
             "Modules\\Training\\": "Modules/Training/app/",
             "Modules\\Specification\\": "Modules/Specification/app/",
+            "Modules\\Gantt\\": "Modules/Gantt/app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }

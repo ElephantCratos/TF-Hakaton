@@ -8,5 +8,6 @@
     "Course": true,
     "Training": true,
     "Specification": true,
-    "Core": true
+    "Core": true,
+    "Gantt": true
 }

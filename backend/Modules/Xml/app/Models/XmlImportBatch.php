@@ -37,7 +37,7 @@ class XmlImportBatch extends Model
     public function processor(): BelongsTo
     {
         // employees таблица — используем модель из другого модуля
-        return $this->belongsTo(\Modules\Employee\Models\Employee::class, 'processed_by');
+        return $this->belongsTo(\Modules\Core\Auth\Models\User::class, 'processed_by');
     }
 
     // -------------------------------------------------------------------------
