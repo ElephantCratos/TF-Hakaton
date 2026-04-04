@@ -66,7 +66,7 @@
 
               <div class="w-48">
                 <Slider
-                  :model-value="[gp.completion_percent || 0]"
+                  :model-value="gp.completion_percent || 0"
                   :min="0"
                   :max="100"
                   :step="5"
@@ -205,16 +205,12 @@ watch(
 );
 
 const updateCompletion = async (gpId, value) => {
-  const val = value[0];
-
+  // value уже число, а не массив
   groupParticipants.value = groupParticipants.value.map((gp) =>
-    gp.id === gpId ? { ...gp, completion_percent: val } : gp
-  );
-
-  await base44.entities.GroupParticipant.update(gpId, {
-    completion_percent: val
-  });
-};
+    gp.id === gpId ? { ...gp, completion_percent: value } : gp
+  )
+  await base44.entities.GroupParticipant.update(gpId, { completion_percent: value })
+}
 
 const removeParticipant = async (gpId) => {
   await base44.entities.GroupParticipant.delete(gpId);

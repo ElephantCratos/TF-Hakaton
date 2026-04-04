@@ -136,8 +136,8 @@
                 class="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 cursor-pointer"
               >
                 <Checkbox
-                  :checked="form.group_ids.includes(g.id)"
-                  @update:checked="() => toggleGroup(g.id)"
+                  :model-value="form.group_ids.includes(g.id)"
+                  @update:model-value="() => toggleGroup(g.id)"
                 />
 
                 <div class="flex-1">
@@ -253,7 +253,7 @@ import  Label  from "@/components/ui/label.vue";
 
 import Select  from "@/components/ui/select.vue";
 
-import  Checkbox  from "@/components/ui/сheckbox.vue";
+import  Checkbox  from "@/components/ui/checkbox.vue";
 
 const VAT_RATE = 0.22;
 
