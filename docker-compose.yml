@@ -43,20 +43,6 @@ services:
       - erp_network
     restart: unless-stopped
 
-  # ───────────────────── Frontend ─────────────────────
-  frontend:
-    image: node:20-alpine
-    container_name: erp_frontend
-    working_dir: /app
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app:z
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
-    networks:
-      - erp_network
-    restart: unless-stopped
-
 volumes:
   mysql_data:
     driver: local
