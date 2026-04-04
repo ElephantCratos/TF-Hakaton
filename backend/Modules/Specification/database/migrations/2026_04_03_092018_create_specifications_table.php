@@ -21,11 +21,6 @@ return new class extends Migration
                 ->constrained('companies')
                 ->cascadeOnDelete();
 
-            $table->decimal('amount_without_vat', 14, 2)->nullable();
-            $table->decimal('vat_rate', 5, 2)->default(22.00);
-            $table->decimal('vat_amount', 14, 2)->nullable();
-            $table->decimal('total_with_vat', 14, 2)->nullable();
-
             $table->foreignId('created_by')
                 ->nullable()
                 ->constrained('employees')

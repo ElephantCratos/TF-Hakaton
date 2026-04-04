@@ -10,8 +10,8 @@ use Modules\Training\Models\TrainingGroup;
 class TrainingGroupPolicy extends BasePolicy
 {
     protected array $permissions = [
-        'viewAny'        => [Role::HR, Role::TrainingCenter],
-        'view'           => [Role::HR, Role::TrainingCenter],
+        'viewAny'        => [],
+        'view'           => [],
         'create'         => [Role::HR, Role::TrainingCenter],
         'update'         => [Role::HR, Role::TrainingCenter],
         'delete'         => [Role::HR],
@@ -41,7 +41,6 @@ class TrainingGroupPolicy extends BasePolicy
 
     public function delete(User $user, TrainingGroup $group): bool
     {
-        // Бизнес-правило: нельзя удалять группу, включённую в спецификацию
         if ($group->specification_id !== null) {
             return false;
         }
