@@ -1,0 +1,13 @@
+{
+    "Auth": true,
+    "Xml": true,
+    "Companies": true,
+    "Employees": true,
+    "Employee": true,
+    "Company": true,
+    "Course": true,
+    "Training": true,
+    "Specification": true,
+    "Core": true,
+    "Gantt": true
+}
