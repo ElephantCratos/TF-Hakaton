@@ -14,7 +14,7 @@ class TrainingGroupResource extends BaseResource
             'course' => $this->whenLoaded('course', fn () => [
                 'id' => $this->course->id,
                 'name' => $this->course->title,
-                'price' => $this->course->getLastPrice(),
+                'price' => $this->course->getLastPriceNumeric(),
             ]),
             'specification_id' => $this->specification_id,
             'start_date' => $this->start_date?->toDateString(),

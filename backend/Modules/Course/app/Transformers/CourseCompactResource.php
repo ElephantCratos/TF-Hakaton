@@ -1,13 +1,10 @@
 <?php
-
 namespace Modules\Course\Transformers;
+
 use Modules\Core\Abstracts\Http\Resources\BaseResource;
 
-class CourseResource extends BaseResource
+class CourseCompactResource extends BaseResource
 {
-    /**
-     * Transform the resource into an array.
-     */
     public function toArray($request): array
     {
         return [
@@ -16,7 +13,7 @@ class CourseResource extends BaseResource
             'title' => $this->title,
             'description' => $this->description,
             'duration_days' => $this->duration_days,
-            'price' => $this->price
+            'price' => $this->lastPrice?->price
         ];
     }
 }

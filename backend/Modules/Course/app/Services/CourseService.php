@@ -4,6 +4,8 @@ namespace Modules\Course\Services;
 
 use Modules\Course\Models\Course;
 use Modules\Course\Models\CoursePrice;
+use Modules\Course\Transformers\CourseResource;
+use Modules\Course\Transformers\CourseCompactResource;
 
 use Modules\Course\Services\CoursePriceService;
 
@@ -17,8 +19,8 @@ class CourseService
 
     public function list()
     {
-        $course = Course::all();
-        return $course;
+        $courses = Course::with('lastPrice')->get();
+        return CourseCompactResource::collection($courses);
     }
 
     public function update(array $data, int $courseId) 
