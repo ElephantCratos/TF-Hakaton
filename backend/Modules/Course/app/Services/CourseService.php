@@ -3,20 +3,34 @@
 namespace Modules\Course\Services;
 
 use Modules\Course\Models\Course;
+use Modules\Course\Models\CoursePrice;
+
+use Modules\Course\Services\CoursePriceService;
+
 class CourseService
+
 {
+    public function __construct(
+        private readonly CoursePriceService $coursePriceService,
+    ) {
+    }
+
     public function list()
     {
         $course = Course::all();
         return $course;
     }
 
-    public function update(array $data, int $id) 
+    public function update(array $data, int $courseId) 
     {
-        $course = Course::findOrFail($id);
+
+        $course = Course::findOrFail($courseId);
 
         $course->code = $data['code'];
         $course->title = $data['title'];
+
+        $this->coursePriceService->create($data, $courseId);
+      
         $course->description = $data['description'];
         $course->duration_days = $data['duration_days'];
 
@@ -28,14 +42,21 @@ class CourseService
     public function create(array $data)
     {
 
-        $cource = Course::create([
+        $course = Course::create([
             'code' => $data['code'],
             'title' => $data['title'],
             'description' => $data['description'],
             'duration_days' => $data['duration_days'],
         ]);
 
-        return $cource;
+        $coursePrice = CoursePrice::create([
+            'course_id' => $course->id,
+            'price' => $data['price'],
+            'valid_from' => now()->toDateString(),
+            'valid_to' => null,
+        ]);
+
+        return $course;
     }
 
     public function soft(int $id)

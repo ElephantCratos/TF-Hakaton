@@ -3,8 +3,9 @@
 namespace Modules\Course\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Core\Abstracts\Http\Requests\BaseFormRequest;
 
-class CourseRequest extends FormRequest
+class CourseRequest extends BaseFormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -14,16 +15,9 @@ class CourseRequest extends FormRequest
         return [
             'code' => ['required', 'string', 'unique:courses', 'max:10', 'min:10'],
             'title' => ['required', 'string'],
+            'price' => ['required', 'decimal:2'],
             'description' => ['string'],
             'duration_days' => ['required', 'int'],
         ];
-    }
-
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
     }
 }
