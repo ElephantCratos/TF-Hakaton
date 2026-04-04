@@ -97,7 +97,7 @@ class XmlImportService
         match ($rootTag) {
             'Edu_Participant', 'Participants' => $this->importParticipants($content, $batch),
             'Edu_Course', 'Courses' => $this->importCourses($content, $batch),
-            'Specification', 'Specifications' => $this->importSpecifications($content, $batch),
+            'Edu_Specification', 'Specifications' => $this->importSpecifications($content, $batch),
             default => $this->logEntry(
                 $batch->id, 'unknown', null, null,
                 XmlImportLog::STATUS_ERROR,

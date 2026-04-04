@@ -13,14 +13,21 @@ use SimpleXMLElement;
  *     <sNumber>           — номер спецификации
  *     <dDate>             — дата (YYYY-MM-DD)
  *     <idOrganization>    — код компании
- *     <idOrganizationHL>  — название компании (игнорируется)
+ *     <idOrganizationHL>  — название компании
  *     <TrainingGroups>
  *       <TrainingGroup>
- *         <sCourseCode>        — код курса
  *         <dStartDate>         — дата начала
  *         <dEndDate>           — дата окончания
  *         <sStatus>            — статус
  *         <nParticipantsCount> — заявленное кол-во участников
+ *         <Edu_Course>         — полная карточка курса (как в Edu_Course XML)
+ *           <id>
+ *           <sCode>
+ *           <sCourseHL>
+ *           <sDescription>
+ *           <nDurationInDays>
+ *           <nPricePerPerson>
+ *         </Edu_Course>
  *         <Participants>
  *           <Edu_Participant>  — полная карточка сотрудника (как в Edu_Participant XML)
  *             <id>
@@ -90,6 +97,7 @@ class SpecificationXmlParser
             'number'       => (string) $xml->sNumber,
             'date'         => (string) $xml->dDate ?: null,
             'company_code' => (string) $xml->idOrganization,
+            'company_name' => (string) $xml->idOrganizationHL,
             'groups'       => $groups,
         ];
     }
@@ -100,7 +108,7 @@ class SpecificationXmlParser
         $participants  = $this->extractParticipants($xml, $declaredCount);
 
         return [
-            'course_code'        => (string) $xml->sCourseCode,
+            'course'             => $this->extractCourse($xml->Edu_Course),
             'start_date'         => (string) $xml->dStartDate ?: null,
             'end_date'           => (string) $xml->dEndDate   ?: null,
             'status'             => (string) $xml->sStatus    ?: 'planned',
@@ -110,10 +118,39 @@ class SpecificationXmlParser
     }
 
     /**
-     * Извлекает полные карточки участников и валидирует их количество.
+     * Извлекает карточку курса — идентично CourseXmlParser::extractCourse().
      *
-     * Правило: если nParticipantsCount != 0, список обязан присутствовать
-     * и содержать ровно столько <Edu_Participant> с валидными данными.
+     * @throws \InvalidArgumentException если блок Edu_Course отсутствует или sCode пуст
+     */
+    private function extractCourse(mixed $courseXml): array
+    {
+        if (! $courseXml || ! ($courseXml instanceof SimpleXMLElement)) {
+            throw new \InvalidArgumentException(
+                "В <TrainingGroup> отсутствует блок <Edu_Course>."
+            );
+        }
+
+        $code = trim((string) $courseXml->sCode);
+
+        if ($code === '') {
+            throw new \InvalidArgumentException(
+                "Блок <Edu_Course> содержит пустой <sCode>."
+            );
+        }
+
+        $price = (string) $courseXml->nPricePerPerson;
+
+        return [
+            'code'          => $code,
+            'title'         => (string) $courseXml->sCourseHL,
+            'description'   => (string) $courseXml->sDescription ?: null,
+            'duration_days' => (int)    $courseXml->nDurationInDays,
+            'price'         => $price !== '' ? number_format((float) $price, 2, '.', '') : null,
+        ];
+    }
+
+    /**
+     * Извлекает полные карточки участников и валидирует их количество.
      *
      * @throws \InvalidArgumentException
      */
@@ -126,18 +163,20 @@ class SpecificationXmlParser
 
             if ($sCode === '') {
                 throw new \InvalidArgumentException(
-                    "Участник в группе (курс: {$groupXml->sCourseCode}) содержит пустой <sCode>."
+                    "Участник в группе (курс: {$groupXml->Edu_Course->sCode}) содержит пустой <sCode>."
                 );
             }
 
             $participants[] = [
                 'employee_code' => $sCode,
                 'last_name'     => (string) $p->sLastName,
-                'first_name'    => (string) $p->sFirstName,
-                'middle_name'   => (string) $p->sMiddleName ?: null,
+                // В Global ERP sMiddleName хранит имя, sFirstName — отчество
+                'first_name'    => (string) $p->sMiddleName,
+                'middle_name'   => (string) $p->sFirstName ?: null,
                 'full_name'     => (string) $p->sFIO,
-                'email'         => (string) $p->sEmail      ?: null,
+                'email'         => (string) $p->sEmail     ?: null,
                 'company_code'  => (string) $p->idOrganization,
+                'company_name'  => (string) $p->idOrganizationHL,
             ];
         }
 
@@ -145,14 +184,14 @@ class SpecificationXmlParser
 
         if ($declaredCount !== 0 && $actualCount === 0) {
             throw new \InvalidArgumentException(
-                "Группа (курс: {$groupXml->sCourseCode}): "
+                "Группа (курс: {$groupXml->Edu_Course->sCode}): "
                 . "nParticipantsCount={$declaredCount}, но список <Participants> отсутствует или пуст."
             );
         }
 
         if ($declaredCount !== 0 && $actualCount !== $declaredCount) {
             throw new \InvalidArgumentException(
-                "Группа (курс: {$groupXml->sCourseCode}): "
+                "Группа (курс: {$groupXml->Edu_Course->sCode}): "
                 . "ожидалось {$declaredCount} участников, получено {$actualCount}."
             );
         }
