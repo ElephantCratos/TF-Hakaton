@@ -6,7 +6,7 @@ use Modules\Course\Http\Controllers\CoursePriceController;
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    Route::prefix('cources')->group(function () {
+    Route::prefix('courses')->group(function () {
 
         Route::post('create', [CourseController::class, 'create']);
         Route::get('list', [CourseController::class, 'list']);
