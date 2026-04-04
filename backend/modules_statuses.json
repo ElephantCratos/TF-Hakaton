@@ -9,5 +9,6 @@
     "Training": true,
     "Specification": true,
     "Core": true,
-    "Gantt": true
+    "Gantt": true,
+    "Analytics": true
 }

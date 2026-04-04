@@ -27,6 +27,7 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
+            "Modules\\Analytics\\": "Modules/Analytics/app/",
             "Modules\\Xml\\": "Modules/Xml/app/",
             "Modules\\Core\\": "Modules/Core/app/",
             "Modules\\Core\\Database\\": "Modules/Core/Database/",
