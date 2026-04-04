@@ -57,14 +57,6 @@ class Employee extends Model
         );
     }
 
-    public function processedXmlBatches(): HasMany
-    {
-        return $this->hasMany(
-            \Modules\Xml\Models\XmlImportBatch::class,
-            'processed_by'
-        );
-    }
-
     public function groupParticipants(): HasMany
     {
         return $this->hasMany(

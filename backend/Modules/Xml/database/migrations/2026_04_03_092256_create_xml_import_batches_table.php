@@ -21,7 +21,7 @@ return new class extends Migration
 
             $table->foreignId('processed_by')
                 ->nullable()
-                ->constrained('employees')
+                ->references('id')->on('users')
                 ->nullOnDelete();
 
             $table->longText('raw_payload')->nullable();

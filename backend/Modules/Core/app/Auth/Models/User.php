@@ -7,6 +7,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Core\Enums\Role;
+use Modules\Xml\Models\XmlImportBatch;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -58,5 +60,10 @@ class User extends Authenticatable
     public function hasRole(Role ...$roles): bool
     {
         return in_array($this->role, $roles);
+    }
+
+    public function processedXmlBatches(): HasMany
+    {
+        return $this->hasMany(XmlImportBatch::class,'processed_by');
     }
 }
