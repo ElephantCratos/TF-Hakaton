@@ -167,18 +167,17 @@ class GanttController extends BaseController
     // Private helpers
     // =========================================================================
 
-    private function loadConflicts($groups): void
-    {
-        $byCourse = $groups->groupBy('course_id');
+private function loadConflicts($groups): void
+{
+    $byCourse = $groups->groupBy('course_id');
 
-        foreach ($groups as $group) {
-            $siblings  = $byCourse->get($group->course_id, collect());
-            $conflicts = $siblings->filter(
-                fn ($other) => $other->id !== $group->id
-                    && $other->start_date <= $group->end_date
-                    && $other->end_date   >= $group->start_date
-            );
-            $group->setRelation('conflicts', $conflicts);
-        }
+    foreach ($groups as $group) {
+        $siblings  = $byCourse->get($group->course_id, collect());
+        $conflicts = $siblings->filter(
+            fn ($other) => $other->id !== $group->id
+                && (string) $other->start_date === (string) $group->start_date
+        );
+        $group->setRelation('conflicts', $conflicts);
     }
+}
 }
