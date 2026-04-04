@@ -12,12 +12,14 @@ class CourseRequest extends BaseFormRequest
      */
     public function rules(): array
     {
+        $courseId = $this->route('id');
         return [
-            'code' => ['required', 'string', 'unique:courses', 'max:10', 'min:10'],
+            'code' => ['required', 'string', 'max:10', 'min:10', 'unique:courses,code,' . $courseId],
             'title' => ['required', 'string'],
             'price' => ['required', 'decimal:2'],
-            'description' => ['string'],
+            'description' => ['nullable', 'string'],
             'duration_days' => ['required', 'int'],
         ];
+
     }
 }

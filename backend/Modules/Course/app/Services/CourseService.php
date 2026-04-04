@@ -31,7 +31,12 @@ class CourseService
         $course->code = $data['code'];
         $course->title = $data['title'];
 
-        $this->coursePriceService->create($data, $courseId);
+        $currentCoursePrice = $course->getLastPriceNumeric();
+
+        if($currentCoursePrice != $data['price'])
+        {
+            $this->coursePriceService->create($data, $courseId);
+        }
       
         $course->description = $data['description'];
         $course->duration_days = $data['duration_days'];

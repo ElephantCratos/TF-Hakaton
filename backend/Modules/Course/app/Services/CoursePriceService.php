@@ -4,6 +4,7 @@ namespace Modules\Course\Services;
 
 use Modules\Course\Models\CoursePrice;
 use Modules\Course\Models\Course;
+use Modules\Course\Transformers\CoursePriceResource;
 
 class CoursePriceService
 {
@@ -13,7 +14,7 @@ class CoursePriceService
         ->orderBy('valid_from', 'desc')
         ->get();
 
-        return $coursePrice;
+        return CoursePriceResource::collection($coursePrice);
     }
 
     public function create(array $data, int $courseId)
