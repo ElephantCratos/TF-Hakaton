@@ -9,8 +9,10 @@ use Modules\Xml\Models\XmlImportBatch;
 use Modules\Xml\Models\XmlImportLog;
 use Modules\Xml\Services\Parsers\ParticipantXmlParser;
 use Modules\Xml\Services\Parsers\CourseXmlParser;
+use Modules\Xml\Services\Parsers\SpecificationXmlParser;
 use Modules\Xml\Services\Importers\EmployeeImporter;
 use Modules\Xml\Services\Importers\CourseImporter;
+use Modules\Xml\Services\Importers\SpecificationImporter;
 
 /**
  * Главный сервис импорта XML.
@@ -24,8 +26,10 @@ class XmlImportService
     public function __construct(
         private readonly ParticipantXmlParser $participantParser,
         private readonly CourseXmlParser      $courseParser,
+        private readonly SpecificationXmlParser  $specificationParser,
         private readonly EmployeeImporter     $employeeImporter,
         private readonly CourseImporter       $courseImporter,
+        private readonly SpecificationImporter   $specificationImporter,
     ) {}
 
     /**
@@ -93,6 +97,7 @@ class XmlImportService
         match ($rootTag) {
             'Edu_Participant', 'Participants' => $this->importParticipants($content, $batch),
             'Edu_Course', 'Courses' => $this->importCourses($content, $batch),
+            'Specification', 'Specifications' => $this->importSpecifications($content, $batch),
             default => $this->logEntry(
                 $batch->id, 'unknown', null, null,
                 XmlImportLog::STATUS_ERROR,
@@ -172,6 +177,44 @@ class XmlImportService
                 $batch->id,
                 'Course',
                 $data['external_id'],
+                $result['operation_type'],
+                $result['status'],
+                $result['message'],
+            );
+        }
+    }
+
+    private function importSpecifications(string $content, XmlImportBatch $batch): void
+    {
+        try {
+            $specifications = $this->specificationParser->parseMultiple($content);
+        } catch (\InvalidArgumentException $e) {
+            $this->logEntry($batch->id, 'Specification', null, null,
+                XmlImportLog::STATUS_ERROR, 'Ошибка разбора XML: ' . $e->getMessage());
+            return;
+        }
+
+        foreach ($specifications as $data) {
+            try {
+                DB::beginTransaction();
+                $result = $this->specificationImporter->import($data, $batch->id);
+                DB::commit();
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::error('[XmlImport] Specification import failed', [
+                    'batch_id' => $batch->id,
+                    'number'   => $data['number'] ?? null,
+                    'error'    => $e->getMessage(),
+                ]);
+                $this->logEntry($batch->id, 'Specification', $data['number'] ?? null, null,
+                    XmlImportLog::STATUS_ERROR, 'Ошибка импорта: ' . $e->getMessage());
+                continue;
+            }
+
+            $this->logEntry(
+                $batch->id,
+                'Specification',
+                $data['number'],
                 $result['operation_type'],
                 $result['status'],
                 $result['message'],

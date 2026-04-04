@@ -59,7 +59,7 @@ class TrainingGroup extends Model implements CalculableContract
      */
     public function getPricePerPersonAttribute(): float
     {
-        return (float) $this->course->getLastPrice() ?? 0;
+        return (float) $this->course->getLastPriceNumeric() ?? 0;
     }
 
     /**

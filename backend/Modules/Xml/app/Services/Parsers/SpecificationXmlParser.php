@@ -1,0 +1,162 @@
+<?php
+
+namespace Modules\Xml\Services\Parsers;
+
+use SimpleXMLElement;
+
+/**
+ * Парсер XML-файла спецификации (Edu_Specification).
+ *
+ * Структура источника (Global ERP):
+ *   <Edu_Specification>
+ *     <id>                — внешний ID в ERP (игнорируется)
+ *     <sNumber>           — номер спецификации
+ *     <dDate>             — дата (YYYY-MM-DD)
+ *     <idOrganization>    — код компании
+ *     <idOrganizationHL>  — название компании (игнорируется)
+ *     <TrainingGroups>
+ *       <TrainingGroup>
+ *         <sCourseCode>        — код курса
+ *         <dStartDate>         — дата начала
+ *         <dEndDate>           — дата окончания
+ *         <sStatus>            — статус
+ *         <nParticipantsCount> — заявленное кол-во участников
+ *         <Participants>
+ *           <Edu_Participant>  — полная карточка сотрудника (как в Edu_Participant XML)
+ *             <id>
+ *             <sCode>
+ *             <sLastName>
+ *             <sMiddleName>
+ *             <sFirstName>
+ *             <sFIO>
+ *             <sEmail>
+ *             <idOrganization>
+ *             <idOrganizationHL>
+ *           </Edu_Participant>
+ *         </Participants>
+ *       </TrainingGroup>
+ *     </TrainingGroups>
+ *   </Edu_Specification>
+ */
+class SpecificationXmlParser
+{
+    /**
+     * @throws \InvalidArgumentException при ошибке разбора, неверном корне
+     *                                   или несоответствии nParticipantsCount
+     */
+    public function parseMultiple(string $xmlContent): array
+    {
+        libxml_use_internal_errors(true);
+        $xml = simplexml_load_string($xmlContent);
+
+        if ($xml === false) {
+            $errors = array_map(fn($e) => trim($e->message), libxml_get_errors());
+            libxml_clear_errors();
+            throw new \InvalidArgumentException('XML parse error: ' . implode('; ', $errors));
+        }
+
+        $results = [];
+
+        if ($xml->getName() === 'Edu_Specification') {
+            $results[] = $this->extractSpecification($xml);
+
+        } elseif ($xml->getName() === 'Specifications') {
+            foreach ($xml->children() as $child) {
+                if ($child->getName() !== 'Edu_Specification') {
+                    continue;
+                }
+                $results[] = $this->extractSpecification($child);
+            }
+
+        } else {
+            throw new \InvalidArgumentException(
+                "Неподдерживаемый корневой тег: <{$xml->getName()}>. "
+                . "Ожидались: Edu_Specification или Specifications."
+            );
+        }
+
+        return $results;
+    }
+
+    private function extractSpecification(SimpleXMLElement $xml): array
+    {
+        $groups = [];
+
+        foreach ($xml->TrainingGroups->TrainingGroup ?? [] as $groupXml) {
+            $groups[] = $this->extractGroup($groupXml);
+        }
+
+        return [
+            'number'       => (string) $xml->sNumber,
+            'date'         => (string) $xml->dDate ?: null,
+            'company_code' => (string) $xml->idOrganization,
+            'groups'       => $groups,
+        ];
+    }
+
+    private function extractGroup(SimpleXMLElement $xml): array
+    {
+        $declaredCount = (int) $xml->nParticipantsCount;
+        $participants  = $this->extractParticipants($xml, $declaredCount);
+
+        return [
+            'course_code'        => (string) $xml->sCourseCode,
+            'start_date'         => (string) $xml->dStartDate ?: null,
+            'end_date'           => (string) $xml->dEndDate   ?: null,
+            'status'             => (string) $xml->sStatus    ?: 'planned',
+            'participants_count' => $declaredCount,
+            'participants'       => $participants,
+        ];
+    }
+
+    /**
+     * Извлекает полные карточки участников и валидирует их количество.
+     *
+     * Правило: если nParticipantsCount != 0, список обязан присутствовать
+     * и содержать ровно столько <Edu_Participant> с валидными данными.
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function extractParticipants(SimpleXMLElement $groupXml, int $declaredCount): array
+    {
+        $participants = [];
+
+        foreach ($groupXml->Participants->Edu_Participant ?? [] as $p) {
+            $sCode = trim((string) $p->sCode);
+
+            if ($sCode === '') {
+                throw new \InvalidArgumentException(
+                    "Участник в группе (курс: {$groupXml->sCourseCode}) содержит пустой <sCode>."
+                );
+            }
+
+            $participants[] = [
+                'employee_code' => $sCode,
+                'last_name'     => (string) $p->sLastName,
+                'first_name'    => (string) $p->sFirstName,
+                'middle_name'   => (string) $p->sMiddleName ?: null,
+                'full_name'     => (string) $p->sFIO,
+                'email'         => (string) $p->sEmail      ?: null,
+                'company_code'  => (string) $p->idOrganization,
+            ];
+        }
+
+        $actualCount = count($participants);
+
+        if ($declaredCount !== 0 && $actualCount === 0) {
+            throw new \InvalidArgumentException(
+                "Группа (курс: {$groupXml->sCourseCode}): "
+                . "nParticipantsCount={$declaredCount}, но список <Participants> отсутствует или пуст."
+            );
+        }
+
+        if ($declaredCount !== 0 && $actualCount !== $declaredCount) {
+            throw new \InvalidArgumentException(
+                "Группа (курс: {$groupXml->sCourseCode}): "
+                . "ожидалось {$declaredCount} участников, получено {$actualCount}."
+            );
+        }
+
+        return $participants;
+    }
+}
