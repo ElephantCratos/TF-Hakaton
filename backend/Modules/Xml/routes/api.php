@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Xml\Http\Controllers\XmlController;
 use Modules\Xml\Http\Controllers\XmlImportController;
 
-Route::prefix('xml')->name('xml.')->group(function () {
+Route::middleware('auth:sanctum')->prefix('xml')->name('xml.')->group(function () {
  
     // Загрузка и запуск импорта
     Route::post('/import', [XmlImportController::class, 'import'])->name('import');

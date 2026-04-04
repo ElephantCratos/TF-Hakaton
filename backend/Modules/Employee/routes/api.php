@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Employee\Http\Controllers\EmployeeController;
 
-Route::prefix('employees')->group(function () {
+Route::middleware('auth:sanctum')->prefix('employees')->group(function () {
 
     Route::post('create', [EmployeeController::class, 'create']);
     Route::get('list', [EmployeeController::class, 'list']);

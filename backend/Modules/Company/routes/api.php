@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Company\Http\Controllers\CompanyController;
 
-Route::prefix('companies')->group(function () {
+Route::middleware('auth:sanctum')->prefix('companies')->group(function () {
 
     Route::post('create', [CompanyController::class, 'create']);
     Route::get('list', [CompanyController::class, 'list']);
