@@ -4,7 +4,7 @@ namespace Modules\Course\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CourseRequest extends FormRequest
+class CoursePriceRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -12,10 +12,7 @@ class CourseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'unique:courses', 'max:10', 'min:10'],
-            'title' => ['required', 'string'],
-            'description' => ['string'],
-            'duration_days' => ['required', 'int'],
+            'price' => ['required', 'decimal:2'],
         ];
     }
 

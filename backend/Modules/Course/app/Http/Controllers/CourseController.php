@@ -76,7 +76,7 @@ class CourseController extends BaseController
     /**
      * Show the specified resource.
      */
-    public function show($id)
+    public function show($courseId)
     {
         return view('course::show');
     }
@@ -84,7 +84,7 @@ class CourseController extends BaseController
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($courseId)
     {
         return view('course::edit');
     }
@@ -92,9 +92,9 @@ class CourseController extends BaseController
     /**
      * Update the specified resource in storage.
      */
-    public function update(CourseRequest $request, int $id)
+    public function update(CourseRequest $request, int $courseId)
     {
-        $result = $this->couresService->update($request->validated(), $id);
+        $result = $this->couresService->update($request->validated(), $courseId);
         
         return $this->success([
             'updated course' => $result],
@@ -105,7 +105,7 @@ class CourseController extends BaseController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy($courseId)
     {
     }
 }
