@@ -5,8 +5,37 @@ namespace Modules\Xml\Services\Importers;
 use Illuminate\Support\Facades\DB;
 use Modules\Xml\Models\XmlImportLog;
 
+/**
+ * Импортёр спецификаций обучения из XML.
+ *
+ * Реализует логику upsert для спецификаций. При каждом импорте
+ * полностью пересоздаёт учебные группы и участников спецификации
+ * (delete + insert), чтобы гарантировать синхронизацию с ERP.
+ */
 class SpecificationImporter
 {
+    /**
+     * Импортирует одну спецификацию обучения.
+     *
+     * Алгоритм:
+     * 1. Проверяет наличие `company_code` — без него спецификация не может быть привязана.
+     * 2. Находит или создаёт компанию.
+     * 3. Находит или создаёт запись спецификации по `number`; при изменении даты или компании — обновляет.
+     * 4. Удаляет все существующие группы и участников этой спецификации.
+     * 5. Создаёт группы заново со всеми участниками.
+     *
+     * @param  array  $data     Данные спецификации из парсера:
+     *                          - `number` (string) — уникальный номер спецификации
+     *                          - `date` (string|null) — дата в формате `YYYY-MM-DD`
+     *                          - `company_code` (string) — внешний код компании
+     *                          - `company_name` (string) — название компании
+     *                          - `groups` (array) — массив учебных групп (см. {@see createGroup()})
+     * @param  int    $batchId  ID батча (зарезервирован для расширения).
+     * @return array            Массив с ключами:
+     *                          - `operation_type` (string): `create` | `update` | `skip`
+     *                          - `status` (string): `success` | `error`
+     *                          - `message` (string): описание результата
+     */
     public function import(array $data, int $batchId): array
     {
         if (empty($data['company_code'])) {
@@ -82,6 +111,21 @@ class SpecificationImporter
         ];
     }
 
+    /**
+     * Создаёт учебную группу и добавляет в неё участников.
+     *
+     * Разрешает курс через {@see resolveCourse()}, создаёт запись группы,
+     * затем пакетно вставляет всех участников в `group_participants`.
+     *
+     * @param  array  $groupData        Данные группы из парсера:
+     *                                  - `course` (array) — данные курса
+     *                                  - `start_date` (string|null)
+     *                                  - `end_date` (string|null)
+     *                                  - `status` (string)
+     *                                  - `participants` (array) — массив данных участников
+     * @param  int    $specificationId  ID спецификации, к которой привязывается группа.
+     * @return void
+     */
     private function createGroup(array $groupData, int $specificationId): void
     {
         $courseId = $this->resolveCourse($groupData['course']);
@@ -116,6 +160,13 @@ class SpecificationImporter
         DB::table('group_participants')->insert($rows);
     }
 
+    /**
+     * Находит или создаёт компанию по коду; при изменении названия — обновляет.
+     *
+     * @param  string  $code  Внешний код компании из ERP.
+     * @param  string  $name  Название компании.
+     * @return int            ID компании в таблице `companies`.
+     */
     private function resolveCompany(string $code, string $name): int
     {
         $company = DB::table('companies')
@@ -140,6 +191,15 @@ class SpecificationImporter
         return $company->id;
     }
 
+    /**
+     * Находит или создаёт курс по коду; при изменении полей — обновляет.
+     * Дополнительно синхронизирует цену через {@see syncPrice()}.
+     *
+     * @param  array  $data  Данные курса:
+     *                       - `code` (string), `title` (string), `description` (string|null),
+     *                         `duration_days` (int), `price` (string|null)
+     * @return int            ID курса в таблице `courses`.
+     */
     private function resolveCourse(array $data): int
     {
         $existing = DB::table('courses')
@@ -182,6 +242,16 @@ class SpecificationImporter
         return $courseId;
     }
 
+    /**
+     * Синхронизирует актуальную цену курса в таблице `course_price`.
+     *
+     * Если текущая активная цена совпадает с новой — пропускает.
+     * Иначе закрывает текущую запись (valid_to = вчера) и создаёт новую.
+     *
+     * @param  int     $courseId  ID курса.
+     * @param  string  $newPrice  Новая цена (decimal-строка).
+     * @return void
+     */
     private function syncPrice(int $courseId, string $newPrice): void
     {
         $today     = now()->toDateString();
@@ -215,6 +285,16 @@ class SpecificationImporter
         ]);
     }
 
+    /**
+     * Находит или создаёт сотрудника по табельному номеру; при изменении данных — обновляет.
+     *
+     * Также вызывает {@see resolveCompany()} для привязки к компании.
+     *
+     * @param  array  $data  Данные участника:
+     *                       - `employee_code`, `last_name`, `first_name`, `middle_name`,
+     *                         `full_name`, `company_code`, `company_name`
+     * @return int            ID сотрудника в таблице `employees`.
+     */
     private function resolveEmployee(array $data): int
     {
         $companyId = $this->resolveCompany($data['company_code'], $data['company_name']);

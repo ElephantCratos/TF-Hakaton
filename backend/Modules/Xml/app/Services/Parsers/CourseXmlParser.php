@@ -19,6 +19,24 @@ use SimpleXMLElement;
  */
 class CourseXmlParser
 {
+    /**
+     * Парсит XML-строку и возвращает массив данных по курсам.
+     *
+     * Поддерживает два формата:
+     * - одиночный: корневой тег `<Edu_Course>`
+     * - пакетный: корневой тег `<Courses>` с дочерними `<Edu_Course>`
+     *
+     * @param  string  $xmlContent  Сырое содержимое XML.
+     * @return array                Массив ассоциативных массивов, каждый из которых содержит:
+     *                              - `external_id` (string)
+     *                              - `code` (string)
+     *                              - `title` (string)
+     *                              - `description` (string|null)
+     *                              - `duration_days` (int)
+     *                              - `price` (string|null) — decimal-строка с двумя знаками
+     *
+     * @throws \InvalidArgumentException Если XML невалиден или корневой тег не поддерживается.
+     */
     public function parseMultiple(string $xmlContent): array
     {
         libxml_use_internal_errors(true);
@@ -52,6 +70,12 @@ class CourseXmlParser
         return $participants;
     }
 
+    /**
+     * Извлекает данные одного курса из XML-элемента.
+     *
+     * @param  SimpleXMLElement  $xml  XML-элемент `<Edu_Course>`.
+     * @return array                   Ассоциативный массив полей курса.
+     */
     private function extractCourse(SimpleXMLElement $xml): array
     {
         $price = (string) $xml->nPricePerPerson;

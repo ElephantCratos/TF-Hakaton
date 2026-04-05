@@ -20,6 +20,11 @@ use Modules\Xml\Services\Importers\SpecificationImporter;
  * Точка входа для HTTP-контроллера и CLI-команды.
  * Определяет тип XML по корневому тегу и делегирует
  * парсинг + импорт нужным классам.
+ *
+ * Поддерживаемые корневые теги:
+ *  - `Edu_Participant` / `Participants`   → импорт сотрудников
+ *  - `Edu_Course`      / `Courses`        → импорт курсов
+ *  - `Edu_Specification` / `Specifications` → импорт спецификаций
  */
 class XmlImportService
 {
@@ -35,9 +40,13 @@ class XmlImportService
     /**
      * Импортирует один загруженный файл.
      *
-     * @param  UploadedFile  $file
-     * @param  int|null      $processedBy  ID сотрудника (из auth)
-     * @return XmlImportBatch
+     * Читает содержимое файла, создаёт батч, определяет тип XML и
+     * запускает соответствующий импортёр. Возвращает модель батча
+     * с загруженными логами.
+     *
+     * @param  UploadedFile  $file         Загруженный XML-файл.
+     * @param  int|null      $processedBy  ID пользователя, инициировавшего импорт (из auth).
+     * @return XmlImportBatch              Созданный батч с результатами и логами.
      */
     public function importFile(UploadedFile $file, ?int $processedBy = null): XmlImportBatch
     {
@@ -50,6 +59,16 @@ class XmlImportService
         return $batch->fresh(['logs']);
     }
 
+    /**
+     * Импортирует XML из строки (например, при вызове из CLI или тестов).
+     *
+     * Аналогичен {@see importFile()}, но принимает сырую XML-строку вместо файла.
+     *
+     * @param  string    $xmlContent   Сырое содержимое XML.
+     * @param  string    $fileName     Имя файла — используется в записи батча для трассировки.
+     * @param  int|null  $processedBy  ID пользователя, инициировавшего импорт.
+     * @return XmlImportBatch          Созданный батч с результатами и логами.
+     */
     public function importString(string $xmlContent, string $fileName, ?int $processedBy = null): XmlImportBatch
     {
         $batch = $this->createBatch($fileName, $xmlContent, $processedBy);
@@ -59,6 +78,14 @@ class XmlImportService
         return $batch->fresh(['logs']);
     }
 
+    /**
+     * Создаёт запись батча в базе данных.
+     *
+     * @param  string    $fileName     Оригинальное имя файла.
+     * @param  string    $rawPayload   Сырое XML-содержимое (сохраняется для аудита).
+     * @param  int|null  $processedBy  ID пользователя.
+     * @return XmlImportBatch
+     */
     private function createBatch(string $fileName, string $rawPayload, ?int $processedBy): XmlImportBatch
     {
         $batch = new XmlImportBatch();
@@ -72,6 +99,16 @@ class XmlImportService
         return $batch;
     }
 
+    /**
+     * Определяет тип XML и запускает соответствующий импортёр.
+     *
+     * При неизвестном или не читаемом корневом теге фиксирует ошибку в лог батча
+     * и прерывает обработку без исключения.
+     *
+     * @param  string          $content  Сырое содержимое XML.
+     * @param  XmlImportBatch  $batch    Текущий батч.
+     * @return void
+     */
     private function processContent(string $content, XmlImportBatch $batch): void
     {
         try {
@@ -94,6 +131,16 @@ class XmlImportService
         };
     }
 
+    /**
+     * Парсит и импортирует участников (сотрудников) из XML.
+     *
+     * Каждая запись обрабатывается в отдельной транзакции.
+     * При ошибке БД транзакция откатывается, в лог фиксируется ошибка, обработка продолжается.
+     *
+     * @param  string          $content  XML-содержимое с тегом `Edu_Participant` или `Participants`.
+     * @param  XmlImportBatch  $batch    Текущий батч.
+     * @return void
+     */
         private function importParticipants(string $content, XmlImportBatch $batch): void
     {
         // Парсим XML в массив
@@ -133,7 +180,16 @@ class XmlImportService
         }
     }
 
-        
+    /**
+     * Парсит и импортирует курсы обучения из XML.
+     *
+     * Каждая запись обрабатывается в отдельной транзакции.
+     * При ошибке БД транзакция откатывается, в лог фиксируется ошибка, обработка продолжается.
+     *
+     * @param  string          $content  XML-содержимое с тегом `Edu_Course` или `Courses`.
+     * @param  XmlImportBatch  $batch    Текущий батч.
+     * @return void
+     */
     private function importCourses(string $content, XmlImportBatch $batch): void
     {
         try {
@@ -172,6 +228,16 @@ class XmlImportService
         }
     }
 
+    /**
+     * Парсит и импортирует спецификации обучения из XML.
+     *
+     * Каждая запись обрабатывается в отдельной транзакции.
+     * При ошибке БД транзакция откатывается, в лог фиксируется ошибка, обработка продолжается.
+     *
+     * @param  string          $content  XML-содержимое с тегом `Edu_Specification` или `Specifications`.
+     * @param  XmlImportBatch  $batch    Текущий батч.
+     * @return void
+     */
     private function importSpecifications(string $content, XmlImportBatch $batch): void
     {
         try {
@@ -210,6 +276,14 @@ class XmlImportService
         }
     }
 
+    /**
+     * Извлекает имя корневого тега из XML-строки с помощью регулярного выражения.
+     *
+     * @param  string  $content  Сырое содержимое XML.
+     * @return string            Имя корневого тега (например, `Edu_Participant`).
+     *
+     * @throws \InvalidArgumentException Если корневой тег не удаётся определить.
+     */
     private function detectRootTag(string $content): string
     {
         if (preg_match('/<([A-Za-z_][A-Za-z0-9_]*)[\s>\/]/', $content, $matches)) {
@@ -219,6 +293,17 @@ class XmlImportService
         throw new \InvalidArgumentException('Не удалось определить корневой тег XML.');
     }
 
+    /**
+     * Создаёт запись лога для одной операции импорта.
+     *
+     * @param  int         $batchId     ID батча.
+     * @param  string      $entityName  Тип сущности (`Employee`, `Course`, `Specification`, `unknown`).
+     * @param  string|null $externalId  Внешний идентификатор сущности из ERP.
+     * @param  string|null $operation   Тип операции (`create`, `update`, `skip`) или `null` при ошибке разбора.
+     * @param  string      $status      Статус (`success`, `error`, `skipped`).
+     * @param  string      $message     Описание результата или текст ошибки.
+     * @return void
+     */
     private function logEntry(
         int $batchId,
         string $entityName,

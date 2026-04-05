@@ -5,8 +5,29 @@ namespace Modules\Gantt\Services;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * Сервис экспорта данных диаграммы Ганта.
+ *
+ * Формирует потоковые ответы (StreamedResponse) для скачивания данных
+ * о учебных группах в форматах CSV и JSON.
+ */
 class GanttExportService
 {
+    /**
+     * Экспортирует учебные группы в формате CSV.
+     *
+     * Файл содержит BOM (UTF-8) для корректного отображения кириллицы в Excel.
+     * Разделитель полей — точка с запятой (`;`).
+     *
+     * Колонки CSV:
+     * - ID, Курс, Дата начала, Дата окончания, Длительность (дней),
+     *   Статус, Участников, Средний прогресс (%), Цена за человека (руб.), Стоимость группы (руб.)
+     *
+     * @param  Collection  $groups  Коллекция моделей TrainingGroup с загруженными relations `course` и `participants`.
+     * @param  string      $from    Начало периода (YYYY-MM-DD) — используется в имени файла.
+     * @param  string      $to      Конец периода (YYYY-MM-DD) — используется в имени файла.
+     * @return StreamedResponse     Ответ с заголовком `Content-Disposition: attachment`.
+     */
     public function exportCsv(Collection $groups, string $from, string $to): StreamedResponse
     {
         $filename = "gantt_{$from}_{$to}.csv";
@@ -53,6 +74,24 @@ class GanttExportService
         ]);
     }
 
+    /**
+     * Экспортирует учебные группы в формате JSON.
+     *
+     * Структура файла:
+     * ```json
+     * {
+     *   "exported_at": "2026-04-05T11:00:00+00:00",
+     *   "period": { "from": "2026-01-01", "to": "2026-12-31" },
+     *   "total": 5,
+     *   "items": [ { "id": 1, "course": "...", ... } ]
+     * }
+     * ```
+     *
+     * @param  Collection  $groups  Коллекция моделей TrainingGroup с загруженными relations `course` и `participants`.
+     * @param  string      $from    Начало периода (YYYY-MM-DD).
+     * @param  string      $to      Конец периода (YYYY-MM-DD).
+     * @return StreamedResponse     Ответ с заголовком `Content-Disposition: attachment`.
+     */
     public function exportJson(Collection $groups, string $from, string $to): StreamedResponse
     {
         $filename = "gantt_{$from}_{$to}.json";

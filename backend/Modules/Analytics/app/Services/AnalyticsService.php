@@ -5,8 +5,38 @@ namespace Modules\Analytics\Services;
 use Illuminate\Support\Facades\DB;
 use Modules\Company\Models\Company;
 
+/**
+ * Сервис аналитики.
+ *
+ * Формирует агрегированные отчёты по компаниям на основе данных
+ * об обучении сотрудников, учебных группах и спецификациях.
+ */
 class AnalyticsService
 {
+    /**
+     * Сформировать сводный отчёт по всем компаниям.
+     *
+     * Для каждой компании вычисляет:
+     * - общее количество сотрудников и количество прошедших обучение (distinct по group_participants)
+     * - количество уникальных учебных групп с участием сотрудников компании
+     * - количество спецификаций компании
+     * - общую стоимость обучения по актуальным ценам курсов и количеству участников
+     * - стоимость с НДС 22%
+     * - средний процент выполнения по всем участникам
+     *
+     * @return array<int, array{
+     *     id: int,
+     *     code: string,
+     *     name: string,
+     *     total_employees: int,
+     *     trained_employees: int,
+     *     training_groups_count: int,
+     *     specifications_count: int,
+     *     total_cost: float,
+     *     total_cost_with_vat: float,
+     *     avg_progress: float
+     * }>
+     */
     public function companySummary(): array
     {
         $companies = Company::withCount([
@@ -52,7 +82,27 @@ class AnalyticsService
 
         return $result;
     }
-
+    
+    /**
+     * Сформировать детальный отчёт по одной компании.
+     *
+     * Возвращает:
+     * - базовые данные компании
+     * - список активных сотрудников с количеством групп и средним прогрессом
+     *   (через LEFT JOIN с group_participants, training_groups, courses)
+     * - список спецификаций компании
+     * - распределение учебных групп по статусам (количество групп на каждый статус)
+     *
+     * @param  int $companyId Идентификатор компании
+     * @return array{
+     *     company: array{id: int, code: string, name: string},
+     *     employees: \Illuminate\Support\Collection<int, array{id: int, full_name: string, email: string|null, groups_count: int, avg_progress: float}>,
+     *     specifications: \Illuminate\Support\Collection<int, object{id: int, number: string, date: string}>,
+     *     status_distribution: \Illuminate\Support\Collection<string, int>
+     * }
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException Если компания не найдена
+     */
     public function companyDetail(int $companyId): array
     {
         $company = Company::findOrFail($companyId);
@@ -105,6 +155,18 @@ class AnalyticsService
         ];
     }
 
+    /**
+     * Рассчитать общую стоимость обучения для компании.
+     *
+     * Вычисляет сумму произведений актуальной цены курса на количество участников
+     * во всех учебных группах, связанных со спецификациями данной компании.
+     *
+     * Актуальная цена определяется как цена с максимальной датой valid_from,
+     * не превышающей текущую дату (подзапрос к таблице course_price).
+     *
+     * @param  int $companyId Идентификатор компании
+     * @return float Общая стоимость обучения (без НДС)
+     */
    private function calculateCompanyTotalCost(int $companyId): float
 {
     return (float) DB::table('specifications')

@@ -21,6 +21,26 @@ use SimpleXMLElement;
  */
 class ParticipantXmlParser
 {
+    /**
+     * Парсит XML-строку и возвращает массив данных по участникам.
+     *
+     * Поддерживает два формата:
+     * - одиночный: корневой тег `<Edu_Participant>`
+     * - пакетный: корневой тег `<Participants>` с дочерними `<Edu_Participant>`
+     *
+     * @param  string  $xmlContent  Сырое содержимое XML.
+     * @return array                Массив ассоциативных массивов, каждый из которых содержит:
+     *                              - `external_id` (string)
+     *                              - `employee_code` (string)
+     *                              - `last_name` (string)
+     *                              - `first_name` (string) — из тега `<sMiddleName>`
+     *                              - `middle_name` (string) — из тега `<sFirstName>`
+     *                              - `full_name` (string)
+     *                              - `company_external_id` (string)
+     *                              - `company_name` (string)
+     *
+     * @throws \InvalidArgumentException Если XML невалиден или корневой тег не поддерживается.
+     */
     public function parseMultiple(string $xmlContent): array
     {
         libxml_use_internal_errors(true);
@@ -54,6 +74,12 @@ class ParticipantXmlParser
         return $participants;
     }
 
+    /**
+     * Извлекает данные одного участника из XML-элемента.
+     *
+     * @param  SimpleXMLElement  $xml  XML-элемент `<Edu_Participant>`.
+     * @return array                   Ассоциативный массив полей участника.
+     */
     private function extractParticipant(SimpleXMLElement $xml): array
     {
         return [

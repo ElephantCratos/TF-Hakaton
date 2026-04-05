@@ -5,8 +5,39 @@ namespace Modules\Xml\Services\Importers;
 use Illuminate\Support\Facades\DB;
 use Modules\Xml\Models\XmlImportLog;
 
+/**
+ * Импортёр сотрудников (участников обучения) из XML.
+ *
+ * Реализует логику upsert для сотрудников и автоматически
+ * создаёт или обновляет связанную компанию.
+ */
 class EmployeeImporter
 {
+    /**
+     * Импортирует одного сотрудника.
+     *
+     * Алгоритм:
+     * 1. Находит или создаёт компанию по `company_external_id`.
+     * 2. Ищет сотрудника по `employee_code` (не удалённого).
+     * 3. Если не найден — создаёт (`create`).
+     * 4. Если найден и данные изменились — обновляет (`update`).
+     * 5. Если ничего не изменилось — пропускает (`skip`).
+     *
+     * @param  array  $data     Данные сотрудника из парсера:
+     *                          - `employee_code` (string) — табельный номер
+     *                          - `last_name` (string) — фамилия
+     *                          - `first_name` (string) — имя
+     *                          - `middle_name` (string) — отчество
+     *                          - `full_name` (string) — ФИО целиком
+     *                          - `company_external_id` (string) — внешний код компании
+     *                          - `company_name` (string) — название компании
+     *                          - `external_id` (string) — внешний ID в ERP (для лога)
+     * @param  int    $batchId  ID батча (зарезервирован для расширения).
+     * @return array            Массив с ключами:
+     *                          - `operation_type` (string): `create` | `update` | `skip`
+     *                          - `status` (string): `success` | `skipped`
+     *                          - `message` (string): описание результата
+     */
     public function import(array $data, int $batchId): array
     {
         $company = DB::table('companies')

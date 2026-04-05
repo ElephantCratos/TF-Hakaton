@@ -47,7 +47,24 @@ use SimpleXMLElement;
  */
 class SpecificationXmlParser
 {
-
+    /**
+     * Парсит XML-строку и возвращает массив данных по спецификациям.
+     *
+     * Поддерживает два формата:
+     * - одиночный: корневой тег `<Edu_Specification>`
+     * - пакетный: корневой тег `<Specifications>` с дочерними `<Edu_Specification>`
+     *
+     * @param  string  $xmlContent  Сырое содержимое XML.
+     * @return array                Массив ассоциативных массивов, каждый из которых содержит:
+     *                              - `number` (string)
+     *                              - `date` (string|null)
+     *                              - `company_code` (string)
+     *                              - `company_name` (string)
+     *                              - `groups` (array) — массив учебных групп
+     *
+     * @throws \InvalidArgumentException Если XML невалиден, корневой тег не поддерживается,
+     *                                   или нарушена внутренняя структура групп/участников.
+     */
     public function parseMultiple(string $xmlContent): array
     {
         libxml_use_internal_errors(true);
@@ -82,6 +99,12 @@ class SpecificationXmlParser
         return $results;
     }
 
+    /**
+     * Извлекает данные одной спецификации из XML-элемента.
+     *
+     * @param  SimpleXMLElement  $xml  XML-элемент `<Edu_Specification>`.
+     * @return array                   Ассоциативный массив с полями спецификации и вложенным массивом групп.
+     */
     private function extractSpecification(SimpleXMLElement $xml): array
     {
         $groups = [];
@@ -99,6 +122,22 @@ class SpecificationXmlParser
         ];
     }
 
+    /**
+     * Извлекает данные одной учебной группы из XML-элемента.
+     *
+     * Валидирует соответствие `nParticipantsCount` и фактического числа участников.
+     *
+     * @param  SimpleXMLElement  $xml  XML-элемент `<TrainingGroup>`.
+     * @return array                   Ассоциативный массив:
+     *                                 - `course` (array)
+     *                                 - `start_date` (string|null)
+     *                                 - `end_date` (string|null)
+     *                                 - `status` (string)
+     *                                 - `participants_count` (int) — заявленное кол-во
+     *                                 - `participants` (array)
+     *
+     * @throws \InvalidArgumentException При проблемах со структурой курса или несоответствии кол-ва участников.
+     */
     private function extractGroup(SimpleXMLElement $xml): array
     {
         $declaredCount = (int) $xml->nParticipantsCount;
@@ -114,6 +153,14 @@ class SpecificationXmlParser
         ];
     }
 
+    /**
+     * Извлекает данные курса из вложенного блока `<Edu_Course>` группы.
+     *
+     * @param  mixed  $courseXml  Ожидается SimpleXMLElement; при отсутствии тега придёт `null` или пустой объект.
+     * @return array              Ассоциативный массив полей курса.
+     *
+     * @throws \InvalidArgumentException Если блок `<Edu_Course>` отсутствует или `<sCode>` пуст.
+     */
     private function extractCourse(mixed $courseXml): array
     {
         if (! $courseXml || ! ($courseXml instanceof SimpleXMLElement)) {
@@ -141,6 +188,23 @@ class SpecificationXmlParser
         ];
     }
 
+    /**
+     * Извлекает список участников из блока `<Participants>` группы.
+     *
+     * Проверяет:
+     * - Отсутствие пустого `<sCode>` у каждого участника.
+     * - Соответствие фактического кол-ва участников `nParticipantsCount`
+     *   (если `nParticipantsCount` > 0).
+     *
+     * @param  SimpleXMLElement  $groupXml       XML-элемент `<TrainingGroup>`.
+     * @param  int               $declaredCount  Заявленное кол-во участников (`nParticipantsCount`).
+     * @return array                             Массив ассоциативных массивов участников:
+     *                                           - `employee_code`, `last_name`, `first_name`,
+     *                                             `middle_name`, `full_name`, `email`,
+     *                                             `company_code`, `company_name`
+     *
+     * @throws \InvalidArgumentException При пустом `<sCode>` или несоответствии кол-ва участников.
+     */
     private function extractParticipants(SimpleXMLElement $groupXml, int $declaredCount): array
     {
         $participants = [];
