@@ -18,6 +18,7 @@ class GroupParticipantResource extends BaseResource
                 'email' => $this->employee->email,
             ]),
             'completion_percent' => $this->completion_percent,
+            'certificate_path'    => $this->certificate_path,
         ];
     }
 }
