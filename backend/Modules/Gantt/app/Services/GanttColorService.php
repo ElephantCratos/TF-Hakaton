@@ -2,20 +2,8 @@
 
 namespace Modules\Gantt\Services;
 
-/**
- * Сервис назначения цветов для диаграммы Ганта.
- *
- * Стратегия: каждому course_id назначается цвет из палитры детерминированно
- * (course_id % count(palette)), поэтому один и тот же курс всегда получает
- * один цвет независимо от порядка вызовов.
- *
- * Цвет можно переопределить вручную через updateColor().
- */
 class GanttColorService
 {
-    /**
-     * Палитра — tailwind-совместимые HEX-цвета, хорошо читаемые на белом фоне.
-     */
     public const PALETTE = [
         '#3B82F6', // blue-500
         '#10B981', // emerald-500
@@ -29,21 +17,11 @@ class GanttColorService
         '#6366F1', // indigo-500
     ];
 
-    /**
-     * Возвращает цвет по course_id (детерминированно).
-     */
     public function colorForCourse(int $courseId): string
     {
         return self::PALETTE[$courseId % count(self::PALETTE)];
     }
 
-    /**
-     * Назначает и сохраняет цвет для группы.
-     * Вызывается при создании группы или смене курса.
-     *
-     * @param  \Modules\Training\Models\TrainingGroup  $group
-     * @param  string|null  $override  — если передан, сохраняет именно его
-     */
     public function assignColor($group, ?string $override = null): string
     {
         $color = $override ?? $this->colorForCourse($group->course_id);

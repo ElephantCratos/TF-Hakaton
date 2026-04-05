@@ -9,14 +9,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-// use Modules\Course\Database\Factories\CourseFactory;
 
 class Course extends Model
 {
     use HasFactory, SoftDeletes;
-    /**
-     * The attributes that are mass assignable.
-     */
 
     protected $table = 'courses';
     protected $fillable = [
@@ -31,11 +27,6 @@ class Course extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
-
-    // protected static function newFactory(): CourseFactory
-    // {
-    //     // return CourseFactory::new();
-    // }
 
     public function price(): HasMany
     {

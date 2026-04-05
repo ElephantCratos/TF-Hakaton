@@ -5,9 +5,6 @@ use Modules\Core\Abstracts\Http\Resources\BaseResource;
 
 class CourseResource extends BaseResource
 {
-    /**
-     * Transform the resource into an array.
-     */
     public function toArray($request): array
     {
         return [

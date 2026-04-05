@@ -4,11 +4,6 @@ namespace Modules\Training\Observers;
 
 use Modules\Training\Models\GroupParticipant;
 
-/**
- * Observer для автоматического пересчёта при изменении состава участников.
- *
- * Суть максимально простая: при любой операции над группой скидываем кэш связей и пересчитываем
- */
 class GroupParticipantObserver
 {
     public function created(GroupParticipant $participant): void

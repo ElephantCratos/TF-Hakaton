@@ -5,63 +5,35 @@ namespace Modules\Analytics\Services;
 use Illuminate\Support\Facades\DB;
 use Modules\Company\Models\Company;
 
-/**
- * Сервис аналитики в разрезе компаний.
- *
- * Логика:
- * - Для каждой компании агрегируются данные по сотрудникам, группам обучения,
- *   спецификациям и стоимости обучения.
- * - Все расчёты выполняются через SQL-агрегации для производительности.
- * - «Участвовал в обучении» = сотрудник компании есть хотя бы в одной записи group_participants.
- */
 class AnalyticsService
 {
-    /**
-     * Сводная аналитика по всем компаниям.
-     *
-     * Возвращает массив с метриками по каждой компании:
-     * - total_employees        — всего сотрудников в компании
-     * - trained_employees      — сотрудников, участвовавших хотя бы в одном обучении
-     * - training_groups_count  — количество учебных групп, в которых были сотрудники компании
-     * - specifications_count   — количество спецификаций компании
-     * - total_cost             — суммарная стоимость обучения (без НДС) по спецификациям
-     * - total_cost_with_vat    — суммарная стоимость обучения (с НДС 22%)
-     * - avg_progress           — средний прогресс обучения сотрудников компании
-     */
     public function companySummary(): array
     {
         $companies = Company::withCount([
-            // Всего сотрудников
             'employees',
-            // Спецификации компании
             'specifications',
         ])->get();
 
         $result = [];
 
         foreach ($companies as $company) {
-            // Сотрудники, которые участвовали хотя бы в одном обучении
             $trainedEmployees = DB::table('group_participants')
                 ->join('employees', 'group_participants.employee_id', '=', 'employees.id')
                 ->where('employees.company_id', $company->id)
                 ->distinct('group_participants.employee_id')
                 ->count('group_participants.employee_id');
 
-            // Количество уникальных учебных групп, в которых участвовали сотрудники компании
             $trainingGroupsCount = DB::table('group_participants')
                 ->join('employees', 'group_participants.employee_id', '=', 'employees.id')
                 ->where('employees.company_id', $company->id)
                 ->distinct('group_participants.training_group_id')
                 ->count('group_participants.training_group_id');
 
-            // Средний прогресс обучения сотрудников компании
             $avgProgress = DB::table('group_participants')
                 ->join('employees', 'group_participants.employee_id', '=', 'employees.id')
                 ->where('employees.company_id', $company->id)
                 ->avg('group_participants.completion_percent') ?? 0;
 
-            // Суммарная стоимость по спецификациям компании (без НДС)
-            // Логика: сумма (цена курса * кол-во участников) для каждой группы в спецификации
             $totalCost = $this->calculateCompanyTotalCost($company->id);
 
             $result[] = [
@@ -81,19 +53,10 @@ class AnalyticsService
         return $result;
     }
 
-    /**
-     * Детальная аналитика по конкретной компании.
-     *
-     * Возвращает расширенную информацию включая:
-     * - список сотрудников с их прогрессом
-     * - список спецификаций с суммами
-     * - распределение по статусам групп обучения
-     */
     public function companyDetail(int $companyId): array
     {
         $company = Company::findOrFail($companyId);
 
-        // Сотрудники компании с информацией об обучении
         $employees = DB::table('employees')
             ->leftJoin('group_participants', 'employees.id', '=', 'group_participants.employee_id')
             ->leftJoin('training_groups', 'group_participants.training_group_id', '=', 'training_groups.id')
@@ -117,13 +80,11 @@ class AnalyticsService
                 'avg_progress'  => round((float) $e->avg_progress, 2),
             ]);
 
-        // Спецификации компании
         $specifications = DB::table('specifications')
             ->where('company_id', $companyId)
             ->select('id', 'number', 'date')
             ->get();
 
-        // Распределение по статусам: сколько групп в каждом статусе
         $statusDistribution = DB::table('group_participants')
             ->join('employees', 'group_participants.employee_id', '=', 'employees.id')
             ->join('training_groups', 'group_participants.training_group_id', '=', 'training_groups.id')
@@ -144,15 +105,6 @@ class AnalyticsService
         ];
     }
 
-    /**
-     * Рассчитать суммарную стоимость обучения по спецификациям компании (без НДС).
-     *
-     * Логика расчёта:
-     * 1. Находим все спецификации компании.
-     * 2. Для каждой спецификации находим привязанные учебные группы.
-     * 3. Для каждой группы: стоимость = актуальная цена курса * количество участников.
-     * 4. Суммируем стоимости всех групп по всем спецификациям.
-     */
    private function calculateCompanyTotalCost(int $companyId): float
 {
     return (float) DB::table('specifications')

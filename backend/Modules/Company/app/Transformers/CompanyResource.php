@@ -6,9 +6,6 @@ use Modules\Core\Abstracts\Http\Resources\BaseResource;
 
 class CompanyResource extends BaseResource
 {
-    /**
-     * Transform the resource into an array.
-     */
     public function toArray($request): array
     {
         return [

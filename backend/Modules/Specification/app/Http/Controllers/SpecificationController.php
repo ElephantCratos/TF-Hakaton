@@ -18,9 +18,6 @@ class SpecificationController extends BaseController
         private readonly SpecificationService $specificationService,
     ) {}
 
-    /**
-     * GET /api/specifications
-     */
     public function index(Request $request): JsonResponse
     {
         $specifications = Specification::with(['company', 'trainingGroups.course', 'trainingGroups.participants'])
@@ -32,9 +29,6 @@ class SpecificationController extends BaseController
         );
     }
 
-    /**
-     * GET /api/specifications/{specification}
-     */
     public function show(Specification $specification): JsonResponse
     {
         $specification->load(['company', 'trainingGroups.course', 'trainingGroups.participants']);
@@ -42,9 +36,6 @@ class SpecificationController extends BaseController
         return $this->success(new SpecificationResource($specification));
     }
 
-    /**
-     * POST /api/specifications
-     */
     public function store(StoreSpecificationRequest $request): JsonResponse
     {
         $this->authorize('create', Specification::class);
@@ -56,9 +47,6 @@ class SpecificationController extends BaseController
         );
     }
 
-    /**
-     * PUT /api/specifications/{specification}
-     */
     public function update(UpdateSpecificationRequest $request, Specification $specification): JsonResponse
     {
         $this->authorize('update', $specification);
@@ -70,9 +58,6 @@ class SpecificationController extends BaseController
         );
     }
 
-    /**
-     * DELETE /api/specifications/{specification}
-     */
     public function destroy(Specification $specification): JsonResponse
     {
         $this->authorize('delete', $specification);
@@ -82,9 +67,6 @@ class SpecificationController extends BaseController
         return $this->noContent();
     }
 
-    /**
-     * POST /api/specifications/{specification}/groups/{training_group}
-     */
     public function attachGroup(Specification $specification, TrainingGroup $trainingGroup): JsonResponse
     {
         $this->authorize('attachGroup', $specification);
@@ -96,9 +78,6 @@ class SpecificationController extends BaseController
         );
     }
 
-    /**
-     * DELETE /api/specifications/{specification}/groups/{training_group}
-     */
     public function detachGroup(Specification $specification, TrainingGroup $trainingGroup): JsonResponse
     {
         $this->authorize('detachGroup', $specification);

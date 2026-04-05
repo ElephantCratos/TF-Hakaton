@@ -7,9 +7,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class GanttExportService
 {
-    /**
-     * Отдаёт CSV-файл стримом — не грузит всё в память.
-     */
     public function exportCsv(Collection $groups, string $from, string $to): StreamedResponse
     {
         $filename = "gantt_{$from}_{$to}.csv";
@@ -17,10 +14,8 @@ class GanttExportService
         return response()->streamDownload(function () use ($groups) {
             $handle = fopen('php://output', 'w');
 
-            // BOM для корректного открытия в Excel
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Заголовки
             fputcsv($handle, [
                 'ID',
                 'Курс',
@@ -58,9 +53,6 @@ class GanttExportService
         ]);
     }
 
-    /**
-     * Отдаёт JSON-файл для дальнейшей обработки.
-     */
     public function exportJson(Collection $groups, string $from, string $to): StreamedResponse
     {
         $filename = "gantt_{$from}_{$to}.json";

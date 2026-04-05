@@ -21,17 +21,11 @@ class GanttFilterRequest extends FormRequest
         ];
     }
 
-    /**
-     * Дата начала периода. По умолчанию — начало текущего месяца.
-     */
     public function fromDate(): string
     {
         return $this->input('from', now()->startOfMonth()->toDateString());
     }
 
-    /**
-     * Дата конца периода. По умолчанию — конец текущего месяца + 2 месяца вперёд.
-     */
     public function toDate(): string
     {
         return $this->input('to', now()->addMonths(2)->endOfMonth()->toDateString());

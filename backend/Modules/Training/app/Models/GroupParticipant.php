@@ -22,10 +22,6 @@ class GroupParticipant extends Model
         ];
     }
 
-    /* ------------------------------------------------------------------ */
-    /*  Связи                                                              */
-    /* ------------------------------------------------------------------ */
-
     public function trainingGroup(): BelongsTo
     {
         return $this->belongsTo(TrainingGroup::class);

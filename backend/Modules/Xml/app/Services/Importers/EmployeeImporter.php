@@ -5,28 +5,10 @@ namespace Modules\Xml\Services\Importers;
 use Illuminate\Support\Facades\DB;
 use Modules\Xml\Models\XmlImportLog;
 
-/**
- * Импортёр участников обучения (сотрудников + компаний).
- *
- * Стратегия:
- *  1. По company_external_id ищем компанию (code). Если не найдена — создаём.
- *  2. По employee_code ищем сотрудника. Если не найден — создаём (INSERT).
- *     Если найден — обновляем данные (UPDATE).
- *
- * Возвращает массив ['operation_type' => ..., 'message' => ...].
- */
 class EmployeeImporter
 {
-    /**
-     * @param  array  $data  Нормализованный массив из ParticipantXmlParser
-     * @param  int    $batchId
-     * @return array{operation_type: string, status: string, message: string}
-     */
     public function import(array $data, int $batchId): array
     {
-        // ----------------------------------------------------------------
-        // 1. Компания: найти или создать по внешнему ID (code)
-        // ----------------------------------------------------------------
         $company = DB::table('companies')
             ->where('code', $data['company_external_id'])
             ->first();
@@ -41,7 +23,6 @@ class EmployeeImporter
         } else {
             $companyId = $company->id;
 
-            // Обновляем название компании, если изменилось
             if ($company->name !== $data['company_name']) {
                 DB::table('companies')
                     ->where('id', $companyId)
@@ -49,9 +30,6 @@ class EmployeeImporter
             }
         }
 
-        // ----------------------------------------------------------------
-        // 2. Сотрудник: upsert по employee_code
-        // ----------------------------------------------------------------
         $existing = DB::table('employees')
             ->where('employee_code', $data['employee_code'])
             ->whereNull('deleted_at')
@@ -76,7 +54,6 @@ class EmployeeImporter
             ];
         }
 
-        // Проверяем, изменились ли данные
         $changed = $existing->last_name   !== $data['last_name']
                 || $existing->first_name  !== $data['first_name']
                 || $existing->middle_name !== $data['middle_name']

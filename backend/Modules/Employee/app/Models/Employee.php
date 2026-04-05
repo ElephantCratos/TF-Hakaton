@@ -29,10 +29,6 @@ class Employee extends Model
         'deleted_at' => 'datetime',
     ];
 
-    // -------------------------------------------------------------------------
-    // Relations
-    // -------------------------------------------------------------------------
-
     public function company(): BelongsTo
     {
         return $this->belongsTo(
@@ -65,10 +61,6 @@ class Employee extends Model
         );
     }
 
-    // -------------------------------------------------------------------------
-    // Accessors
-    // -------------------------------------------------------------------------
-
     public function getShortNameAttribute(): string
     {
         $firstInitial = $this->first_name
@@ -81,10 +73,6 @@ class Employee extends Model
 
         return trim("{$this->last_name} {$firstInitial}{$middleInitial}");
     }
-
-    // -------------------------------------------------------------------------
-    // Scopes
-    // -------------------------------------------------------------------------
 
     public function scopeByCompany($query, int $companyId)
     {

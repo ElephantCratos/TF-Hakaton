@@ -9,15 +9,12 @@ class XmlImportLog extends Model
 {
     protected $table = 'xml_import_logs';
 
-    // Только created_at из схемы
     const UPDATED_AT = null;
 
-    // Статусы записи
     const STATUS_SUCCESS = 'success';
     const STATUS_ERROR   = 'error';
     const STATUS_SKIPPED = 'skipped';
 
-    // Типы операций
     const OP_CREATE = 'create';
     const OP_UPDATE = 'update';
     const OP_SKIP   = 'skip';
@@ -30,10 +27,6 @@ class XmlImportLog extends Model
         'status',
         'message',
     ];
-
-    // -------------------------------------------------------------------------
-    // Relations
-    // -------------------------------------------------------------------------
 
     public function batch(): BelongsTo
     {

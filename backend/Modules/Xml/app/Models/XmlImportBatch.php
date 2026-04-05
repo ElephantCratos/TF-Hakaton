@@ -10,7 +10,6 @@ class XmlImportBatch extends Model
 {
     protected $table = 'xml_import_batches';
 
-    // Нет soft-deletes в схеме, timestamps управляем вручную
     public $timestamps = false;
 
     protected $fillable = [
@@ -25,10 +24,6 @@ class XmlImportBatch extends Model
         'imported_at' => 'datetime',
     ];
 
-    // -------------------------------------------------------------------------
-    // Relations
-    // -------------------------------------------------------------------------
-
     public function logs(): HasMany
     {
         return $this->hasMany(XmlImportLog::class, 'batch_id');
@@ -36,13 +31,8 @@ class XmlImportBatch extends Model
 
     public function processor(): BelongsTo
     {
-        // employees таблица — используем модель из другого модуля
         return $this->belongsTo(\Modules\Core\Auth\Models\User::class, 'processed_by');
     }
-
-    // -------------------------------------------------------------------------
-    // Accessors
-    // -------------------------------------------------------------------------
 
     public function getSuccessCountAttribute(): int
     {

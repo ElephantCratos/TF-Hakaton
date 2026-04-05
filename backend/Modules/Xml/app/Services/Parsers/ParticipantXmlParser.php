@@ -21,11 +21,6 @@ use SimpleXMLElement;
  */
 class ParticipantXmlParser
 {
-    /**
-     * Разбирает XML-строку и возвращает нормализованный массив данных.
-     *
-     * @throws \InvalidArgumentException при ошибке разбора или неверном корне
-     */
     public function parseMultiple(string $xmlContent): array
     {
         libxml_use_internal_errors(true);
@@ -39,15 +34,13 @@ class ParticipantXmlParser
 
         $participants = [];
 
-        // Если корень — одиночный участник
         if ($xml->getName() === 'Edu_Participant') {
             $participants[] = $this->extractParticipant($xml);
 
-        // Если корень — блок участников
         } elseif ($xml->getName() === 'Participants') {
             foreach ($xml->children() as $child) {
                 if ($child->getName() !== 'Edu_Participant') {
-                    continue; // игнорируем неожиданные теги
+                    continue;
                 }
                 $participants[] = $this->extractParticipant($child);
             }
@@ -67,11 +60,9 @@ class ParticipantXmlParser
             'external_id'      => (string) $xml->id,
             'employee_code'    => (string) $xml->sCode,
             'last_name'        => (string) $xml->sLastName,
-            // В Global ERP sMiddleName хранит имя, sFirstName — отчество
             'first_name'       => (string) $xml->sMiddleName,
             'middle_name'      => (string) $xml->sFirstName,
             'full_name'        => (string) $xml->sFIO,
-            // Данные компании
             'company_external_id'   => (string) $xml->idOrganization,
             'company_name'          => (string) $xml->idOrganizationHL,
         ];

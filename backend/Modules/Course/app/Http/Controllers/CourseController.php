@@ -15,9 +15,7 @@ class CourseController extends BaseController
         private readonly CourseService $couresService,
     ) {
     }
-    /**
-     * Display a listing of the resource.
-     */
+
     public function list()
     {
         $result = $this->couresService->list();
@@ -27,9 +25,6 @@ class CourseController extends BaseController
         ], 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(CourseRequest $request)
     {
         $result = $this->couresService->create($request->validated());
@@ -66,32 +61,20 @@ class CourseController extends BaseController
         );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
     }
 
-    /**
-     * Show the specified resource.
-     */
     public function show($courseId)
     {
         return view('course::show');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($courseId)
     {
         return view('course::edit');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(CourseRequest $request, int $courseId)
     {
         $result = $this->couresService->update($request->validated(), $courseId);
@@ -102,9 +85,6 @@ class CourseController extends BaseController
         );
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($courseId)
     {
     }

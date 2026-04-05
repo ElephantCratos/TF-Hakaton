@@ -5,31 +5,10 @@ namespace Modules\Xml\Services\Importers;
 use Illuminate\Support\Facades\DB;
 use Modules\Xml\Models\XmlImportLog;
 
-/**
- * Импортёр спецификаций.
- *
- * Стратегия:
- *  1. Компания спецификации — upsert по idOrganization (как в EmployeeImporter).
- *     Не найдена в XML (пустой код) → ошибка.
- *  2. Курс группы           — upsert по sCode + синхронизация цены
- *                             (повторяет логику CourseImporter).
- *  3. Участники             — upsert компании + upsert сотрудника
- *                             (повторяет логику EmployeeImporter).
- *  4. Спецификация          — upsert по sNumber.
- *  5. Группы                — старые удаляем вместе с участниками, создаём заново.
- */
 class SpecificationImporter
 {
-    /**
-     * @param  array  $data     Нормализованный массив из SpecificationXmlParser
-     * @param  int    $batchId
-     * @return array{operation_type: string, status: string, message: string}
-     */
     public function import(array $data, int $batchId): array
     {
-        // ----------------------------------------------------------------
-        // 1. Компания спецификации — обязана быть в XML
-        // ----------------------------------------------------------------
         if (empty($data['company_code'])) {
             return [
                 'operation_type' => XmlImportLog::OP_SKIP,
@@ -40,9 +19,6 @@ class SpecificationImporter
 
         $companyId = $this->resolveCompany($data['company_code'], $data['company_name']);
 
-        // ----------------------------------------------------------------
-        // 2. Спецификация — upsert по number
-        // ----------------------------------------------------------------
         $existing = DB::table('specifications')
             ->where('number', $data['number'])
             ->first();
@@ -78,9 +54,6 @@ class SpecificationImporter
             $operation = XmlImportLog::OP_UPDATE;
         }
 
-        // ----------------------------------------------------------------
-        // 3. Группы: сносим старые, создаём новые
-        // ----------------------------------------------------------------
         $oldGroupIds = DB::table('training_groups')
             ->where('specification_id', $specificationId)
             ->pluck('id');
@@ -99,9 +72,6 @@ class SpecificationImporter
             $this->createGroup($groupData, $specificationId);
         }
 
-        // ----------------------------------------------------------------
-        // 4. Результат
-        // ----------------------------------------------------------------
         $label = $operation === XmlImportLog::OP_CREATE ? 'Создана' : 'Обновлена';
 
         return [
@@ -112,13 +82,8 @@ class SpecificationImporter
         ];
     }
 
-    // =========================================================================
-    // Private helpers
-    // =========================================================================
-
     private function createGroup(array $groupData, int $specificationId): void
     {
-        // Курс — upsert, повторяет CourseImporter
         $courseId = $this->resolveCourse($groupData['course']);
 
         $groupId = DB::table('training_groups')->insertGetId([
@@ -151,9 +116,6 @@ class SpecificationImporter
         DB::table('group_participants')->insert($rows);
     }
 
-    /**
-     * Upsert компании по code. Повторяет логику EmployeeImporter.
-     */
     private function resolveCompany(string $code, string $name): int
     {
         $company = DB::table('companies')
@@ -178,10 +140,6 @@ class SpecificationImporter
         return $company->id;
     }
 
-    /**
-     * Upsert курса по code + синхронизация цены.
-     * Повторяет логику CourseImporter.
-     */
     private function resolveCourse(array $data): int
     {
         $existing = DB::table('courses')
@@ -224,10 +182,6 @@ class SpecificationImporter
         return $courseId;
     }
 
-    /**
-     * Синхронизация цены с историчностью.
-     * Повторяет логику CourseImporter::syncPrice().
-     */
     private function syncPrice(int $courseId, string $newPrice): void
     {
         $today     = now()->toDateString();
@@ -261,10 +215,6 @@ class SpecificationImporter
         ]);
     }
 
-    /**
-     * Upsert сотрудника по employee_code.
-     * Повторяет логику EmployeeImporter.
-     */
     private function resolveEmployee(array $data): int
     {
         $companyId = $this->resolveCompany($data['company_code'], $data['company_name']);

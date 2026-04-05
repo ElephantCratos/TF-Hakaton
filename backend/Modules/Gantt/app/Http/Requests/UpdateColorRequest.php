@@ -17,7 +17,6 @@ class UpdateColorRequest extends FormRequest
         $palette = implode(',', GanttColorService::PALETTE);
 
         return [
-            // Принимаем либо произвольный HEX, либо значение из палитры
             'color' => [
                 'required',
                 'string',

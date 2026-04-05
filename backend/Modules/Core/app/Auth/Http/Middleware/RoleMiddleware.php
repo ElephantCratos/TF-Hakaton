@@ -21,7 +21,6 @@ class RoleMiddleware
             ], 401);
         }
 
-        // Admin имеет доступ ко всему
         if ($user->isAdmin()) {
             return $next($request);
         }

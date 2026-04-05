@@ -19,11 +19,6 @@ use SimpleXMLElement;
  */
 class CourseXmlParser
 {
-    /**
-     * Разбирает XML-строку и возвращает нормализованный массив данных.
-     *
-     * @throws \InvalidArgumentException при ошибке разбора или неверном корне
-     */
     public function parseMultiple(string $xmlContent): array
     {
         libxml_use_internal_errors(true);
@@ -37,15 +32,13 @@ class CourseXmlParser
 
         $participants = [];
 
-        // Если корень — одиночный участник
         if ($xml->getName() === 'Edu_Course') {
             $participants[] = $this->extractCourse($xml);
 
-        // Если корень — блок участников
         } elseif ($xml->getName() === 'Courses') {
             foreach ($xml->children() as $child) {
                 if ($child->getName() !== 'Edu_Course') {
-                    continue; // игнорируем неожиданные теги
+                    continue;
                 }
                 $participants[] = $this->extractCourse($child);
             }
@@ -69,7 +62,6 @@ class CourseXmlParser
             'title'         => (string) $xml->sCourseHL,
             'description'   => (string) $xml->sDescription ?: null,
             'duration_days' => (int) $xml->nDurationInDays,
-            // Цена — decimal(12,2), храним как строку для точности
             'price'         => $price !== '' ? number_format((float) $price, 2, '.', '') : null,
         ];
     }

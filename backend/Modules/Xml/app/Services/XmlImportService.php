@@ -50,14 +50,6 @@ class XmlImportService
         return $batch->fresh(['logs']);
     }
 
-    /**
-     * Импортирует XML из строки (например, из CLI).
-     *
-     * @param  string       $xmlContent
-     * @param  string       $fileName
-     * @param  int|null     $processedBy
-     * @return XmlImportBatch
-     */
     public function importString(string $xmlContent, string $fileName, ?int $processedBy = null): XmlImportBatch
     {
         $batch = $this->createBatch($fileName, $xmlContent, $processedBy);
@@ -66,10 +58,6 @@ class XmlImportService
 
         return $batch->fresh(['logs']);
     }
-
-    // =========================================================================
-    // Private helpers
-    // =========================================================================
 
     private function createBatch(string $fileName, string $rawPayload, ?int $processedBy): XmlImportBatch
     {
@@ -222,10 +210,6 @@ class XmlImportService
         }
     }
 
-    /**
-     * Определяет корневой тег без полного разбора XML.
-     * Быстро и безопасно для больших файлов.
-     */
     private function detectRootTag(string $content): string
     {
         if (preg_match('/<([A-Za-z_][A-Za-z0-9_]*)[\s>\/]/', $content, $matches)) {

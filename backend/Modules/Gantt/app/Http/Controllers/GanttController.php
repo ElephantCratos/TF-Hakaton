@@ -22,10 +22,6 @@ class GanttController extends BaseController
         private readonly GanttExportService $exportService,
     ) {}
 
-    // =========================================================================
-    // GET /api/gantt
-    // =========================================================================
-
     public function index(GanttFilterRequest $request): JsonResponse
     {
         $from = $request->fromDate();
@@ -67,16 +63,6 @@ class GanttController extends BaseController
         ]);
     }
 
-    // =========================================================================
-    // PATCH /api/gantt/{trainingGroup}/dates
-    // =========================================================================
-
-    /**
-     * Редактирование дат группы прямо из диаграммы Ганта (drag & drop на фронте).
-     *
-     * При смене дат возвращаем обновлённый элемент и список конфликтов —
-     * фронт может сразу подсветить пересечения без перезагрузки всей диаграммы.
-     */
     public function updateDates(UpdateDatesRequest $request, TrainingGroup $trainingGroup): JsonResponse
     {
         $this->authorize('update', $trainingGroup);
@@ -105,17 +91,6 @@ class GanttController extends BaseController
         ]);
     }
 
-    // =========================================================================
-    // GET /api/gantt/export
-    // =========================================================================
-
-    /**
-     * Экспорт данных Ганта в CSV или JSON.
-     *
-     * Query params:
-     *   from, to, status, course_id  — те же фильтры что у index
-     *   format                       — csv (default) | json
-     */
     public function export(GanttExportRequest $request): StreamedResponse
     {
         $from = $request->fromDate();
@@ -147,10 +122,6 @@ class GanttController extends BaseController
         };
     }
 
-    // =========================================================================
-    // PATCH /api/gantt/{trainingGroup}/color
-    // =========================================================================
-
     public function updateColor(UpdateColorRequest $request, TrainingGroup $trainingGroup): JsonResponse
     {
         $this->authorize('update', $trainingGroup);
@@ -162,10 +133,6 @@ class GanttController extends BaseController
             'color' => $color,
         ]);
     }
-
-    // =========================================================================
-    // Private helpers
-    // =========================================================================
 
 private function loadConflicts($groups): void
 {

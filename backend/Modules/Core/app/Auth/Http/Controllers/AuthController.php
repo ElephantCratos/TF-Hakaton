@@ -16,9 +16,6 @@ class AuthController extends BaseController
         private readonly AuthService $authService,
     ) {}
 
-    /**
-     * POST /api/auth/register
-     */
     public function register(RegisterRequest $request): JsonResponse
     {
         $result = $this->authService->register($request->validated());
@@ -29,9 +26,6 @@ class AuthController extends BaseController
         ], 'Регистрация прошла успешно');
     }
 
-    /**
-     * POST /api/auth/login
-     */
     public function login(LoginRequest $request): JsonResponse
     {
         $result = $this->authService->login($request->validated());
@@ -42,9 +36,6 @@ class AuthController extends BaseController
         ], 'Вход выполнен');
     }
 
-    /**
-     * POST /api/auth/logout
-     */
     public function logout(Request $request): JsonResponse
     {
         $this->authService->logout($request->user());
@@ -52,9 +43,6 @@ class AuthController extends BaseController
         return $this->success(message: 'Выход выполнен');
     }
 
-    /**
-     * GET /api/auth/me
-     */
     public function me(Request $request): JsonResponse
     {
         return $this->success(

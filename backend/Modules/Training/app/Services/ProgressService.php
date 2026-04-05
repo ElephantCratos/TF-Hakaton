@@ -5,18 +5,9 @@ namespace Modules\Training\Services;
 use Modules\Training\Models\TrainingGroup;
 use Modules\Training\Models\GroupParticipant;
 
-/**
- * Сервис расчёта прогресса обучения.
- *
- * Средний прогресс по группе = SUM / COUNT
- * Т.е. среднее арифметическое показателя completion_percent
- * Если участников нет — прогресс = 0%.
- */
 class ProgressService
 {
-    /**
-     * Получить средний прогресс группы, в %.
-     */
+   
     public function getGroupProgress(TrainingGroup $group): float
     {
         $avg = $group->participants()->avg('completion_percent');
@@ -24,9 +15,6 @@ class ProgressService
         return round($avg ?? 0, 2);
     }
 
-    /**
-     * Обновить прогресс конкретного участника.
-     */
     public function updateParticipantProgress(GroupParticipant $participant, float $percent): GroupParticipant
     {
         $percent = max(0, min(100, $percent));
@@ -36,9 +24,6 @@ class ProgressService
         return $participant->fresh();
     }
 
-    /**
-     * Массовое обновление прогресса всех участников группы.
-     */
     public function setGroupProgress(TrainingGroup $group, float $percent): void
     {
         $percent = max(0, min(100, $percent));

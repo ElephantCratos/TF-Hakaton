@@ -19,9 +19,6 @@ enum TrainingStatus: string
         };
     }
 
-    /**
-     * Допустимые переходы статусов.
-     */
     public function allowedTransitions(): array
     {
         return match ($this) {

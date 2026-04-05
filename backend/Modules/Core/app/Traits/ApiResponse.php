@@ -4,9 +4,6 @@ namespace Modules\Core\Traits;
 
 use Illuminate\Http\JsonResponse;
 
-/**
- * Унифицированные API-ответы для всех контроллеров.
- */
 trait ApiResponse
 {
     protected function success(mixed $data = null, string $message = 'OK', int $code = 200): JsonResponse

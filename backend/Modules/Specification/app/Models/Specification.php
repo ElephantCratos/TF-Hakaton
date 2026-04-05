@@ -27,18 +27,11 @@ class Specification extends Model implements CalculableContract, HasCompanyScope
         ];
     }
 
-    // --- Связи ---
-
     public function trainingGroups(): HasMany
     {
         return $this->hasMany(\Modules\Training\Models\TrainingGroup::class);
     }
 
-
-    /**
-     * Сумма по спецификации без НДС, руб.
-     *
-     */
     public function getTotalWithoutVatAttribute(): float
     {
         return $this->trainingGroups->sum(function ($group) {
@@ -46,35 +39,21 @@ class Specification extends Model implements CalculableContract, HasCompanyScope
         });
     }
 
-    /**
-     * Сумма НДС.
-     */
     public function getVatAmountAttribute(): float
     {
         return $this->calculateVAT($this->total_without_vat);
     }
 
-    /**
-     * Итого с НДС, руб.
-     */
     public function getTotalWithVatAttribute(): float
     {
         return $this->calculateTotalWithVAT($this->total_without_vat);
     }
 
-    /**
-     * Количество привязанных групп.
-     */
     public function getGroupsCountAttribute(): int
     {
         return $this->trainingGroups()->count();
     }
 
-
-    /**
-     * Пересчёт стоимости спецификации.
-     *
-     */
     public function recalculateCost(): void
     {
         $this->unsetRelation('trainingGroups');

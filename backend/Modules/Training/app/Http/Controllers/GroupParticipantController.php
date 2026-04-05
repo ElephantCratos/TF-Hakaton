@@ -17,9 +17,6 @@ class GroupParticipantController extends BaseController
         private readonly ProgressService $progressService,
     ) {}
 
-    /**
-     * GET /api/training-groups/{trainingGroup}/participants
-     */
     public function index(TrainingGroup $trainingGroup): JsonResponse
     {
         $participants = $trainingGroup->participants()->with('employee')->get();
@@ -27,9 +24,6 @@ class GroupParticipantController extends BaseController
         return $this->success(GroupParticipantResource::collection($participants));
     }
 
-    /**
-     * POST /api/training-groups/{trainingGroup}/participants
-     */
     public function store(StoreGroupParticipantRequest $request, TrainingGroup $trainingGroup): JsonResponse
     {
         $this->authorize('update', $trainingGroup);
@@ -44,10 +38,6 @@ class GroupParticipantController extends BaseController
         );
     }
 
-    /**
-     * PATCH /api/training-groups/{trainingGroup}/participants/{participant}
-     * Обновление прогресса участника.
-     */
     public function update(
         UpdateGroupParticipantRequest $request,
         TrainingGroup $trainingGroup,
@@ -63,9 +53,6 @@ class GroupParticipantController extends BaseController
         return $this->success(new GroupParticipantResource($participant));
     }
 
-    /**
-     * DELETE /api/training-groups/{trainingGroup}/participants/{participant}
-     */
     public function destroy(TrainingGroup $trainingGroup, GroupParticipant $participant): JsonResponse
     {
         $this->authorize('update', $trainingGroup);

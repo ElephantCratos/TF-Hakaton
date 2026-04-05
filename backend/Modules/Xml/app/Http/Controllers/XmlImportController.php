@@ -15,21 +15,6 @@ class XmlImportController extends Controller
         private readonly XmlImportService $importService,
     ) {}
 
-    // =========================================================================
-    // POST /api/xml/import
-    // =========================================================================
-
-    /**
-     * Принимает один или несколько XML-файлов и запускает импорт.
-     *
-     * Body: multipart/form-data
-     *   files[]  — массив XML-файлов
-     *
-     * @response 200 {
-     *   "message": "Импорт завершён",
-     *   "batches": [ { batch + logs + counters } ]
-     * }
-     */
     public function import(XmlImportRequest $request): JsonResponse
     {
         $processedBy = $request->user()?->id;
@@ -45,13 +30,6 @@ class XmlImportController extends Controller
         ]);
     }
 
-    // =========================================================================
-    // GET /api/xml/batches
-    // =========================================================================
-
-    /**
-     * Список батчей импорта с пагинацией.
-     */
     public function batches(Request $request): JsonResponse
     {
         $batches = XmlImportBatch::query()
@@ -63,20 +41,12 @@ class XmlImportController extends Controller
         return response()->json($batches);
     }
 
-    // =========================================================================
-    // GET /api/xml/batches/{batch}
-    // =========================================================================
-
     public function batchShow(XmlImportBatch $batch): JsonResponse
     {
         return response()->json([
             'batch' => $this->formatBatch($batch, withLogs: true),
         ]);
     }
-
-    // =========================================================================
-    // GET /api/xml/batches/{batch}/logs
-    // =========================================================================
 
     public function batchLogs(XmlImportBatch $batch, Request $request): JsonResponse
     {
@@ -88,10 +58,6 @@ class XmlImportController extends Controller
 
         return response()->json($logs);
     }
-
-    // =========================================================================
-    // Helpers
-    // =========================================================================
 
     private function formatBatch(XmlImportBatch $batch, bool $withLogs = false): array
     {

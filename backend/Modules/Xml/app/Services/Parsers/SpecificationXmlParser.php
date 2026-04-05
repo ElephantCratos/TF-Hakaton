@@ -47,10 +47,7 @@ use SimpleXMLElement;
  */
 class SpecificationXmlParser
 {
-    /**
-     * @throws \InvalidArgumentException при ошибке разбора, неверном корне
-     *                                   или несоответствии nParticipantsCount
-     */
+
     public function parseMultiple(string $xmlContent): array
     {
         libxml_use_internal_errors(true);
@@ -117,11 +114,6 @@ class SpecificationXmlParser
         ];
     }
 
-    /**
-     * Извлекает карточку курса — идентично CourseXmlParser::extractCourse().
-     *
-     * @throws \InvalidArgumentException если блок Edu_Course отсутствует или sCode пуст
-     */
     private function extractCourse(mixed $courseXml): array
     {
         if (! $courseXml || ! ($courseXml instanceof SimpleXMLElement)) {
@@ -149,11 +141,6 @@ class SpecificationXmlParser
         ];
     }
 
-    /**
-     * Извлекает полные карточки участников и валидирует их количество.
-     *
-     * @throws \InvalidArgumentException
-     */
     private function extractParticipants(SimpleXMLElement $groupXml, int $declaredCount): array
     {
         $participants = [];
@@ -170,7 +157,6 @@ class SpecificationXmlParser
             $participants[] = [
                 'employee_code' => $sCode,
                 'last_name'     => (string) $p->sLastName,
-                // В Global ERP sMiddleName хранит имя, sFirstName — отчество
                 'first_name'    => (string) $p->sMiddleName,
                 'middle_name'   => (string) $p->sFirstName ?: null,
                 'full_name'     => (string) $p->sFIO,

@@ -18,9 +18,6 @@ class TrainingGroupController extends BaseController
         private readonly TrainingGroupService $service,
     ) {}
 
-    /**
-     * GET /api/training-groups
-     */
     public function index(Request $request): JsonResponse
     {
         $groups = TrainingGroup::with(['course', 'participants'])
@@ -32,9 +29,6 @@ class TrainingGroupController extends BaseController
         );
     }
 
-    /**
-     * GET /api/training-groups/{trainingGroup}
-     */
     public function show(TrainingGroup $trainingGroup): JsonResponse
     {
         $trainingGroup->load(['course', 'participants.employee']);
@@ -42,9 +36,6 @@ class TrainingGroupController extends BaseController
         return $this->success(new TrainingGroupResource($trainingGroup));
     }
 
-    /**
-     * POST /api/training-groups
-     */
     public function store(StoreTrainingGroupRequest $request): JsonResponse
     {
         $this->authorize('create', TrainingGroup::class);
@@ -54,9 +45,6 @@ class TrainingGroupController extends BaseController
         return $this->created(new TrainingGroupResource($group->load('course')));
     }
 
-    /**
-     * PUT /api/training-groups/{trainingGroup}
-     */
     public function update(UpdateTrainingGroupRequest $request, TrainingGroup $trainingGroup): JsonResponse
     {
         $this->authorize('update', $trainingGroup);
@@ -66,9 +54,6 @@ class TrainingGroupController extends BaseController
         return $this->success(new TrainingGroupResource($group->load('course')));
     }
 
-    /**
-     * DELETE /api/training-groups/{trainingGroup}
-     */
     public function destroy(TrainingGroup $trainingGroup): JsonResponse
     {
         $this->authorize('delete', $trainingGroup);
@@ -78,9 +63,6 @@ class TrainingGroupController extends BaseController
         return $this->noContent();
     }
 
-    /**
-     * PATCH /api/training-groups/{trainingGroup}/status
-     */
     public function changeStatus(Request $request, TrainingGroup $trainingGroup): JsonResponse
     {
         $this->authorize('changeStatus', $trainingGroup);
@@ -95,9 +77,6 @@ class TrainingGroupController extends BaseController
         return $this->success(new TrainingGroupResource($group));
     }
 
-    /**
-     * GET /api/training-groups/{trainingGroup}/conflicts
-     */
     public function conflicts(TrainingGroup $trainingGroup): JsonResponse
     {
         $conflicts = $this->service->findConflicts($trainingGroup);

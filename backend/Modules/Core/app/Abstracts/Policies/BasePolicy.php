@@ -7,19 +7,8 @@ use Modules\Core\Enums\Role;
 
 abstract class BasePolicy
 {
-    /**
-     * Пустой массив = доступно всем авторизованным.
-     * Переопределяется в каждой конкретной политике.
-     *
-     * @var array<string, Role[]>
-     */
     protected array $permissions = [];
 
-    /**
-     * Проверка роли пользователя для указанного действия.
-     * Admin проходит всегда. 
-     * Пустой массив ролей = доступно всем.
-     */
     protected function checkRole(User $user, string $ability): bool
     {
         if ($user->isAdmin()) {
@@ -28,7 +17,6 @@ abstract class BasePolicy
 
         $allowed = $this->permissions[$ability] ?? [];
 
-        // Пустой массив — доступно всем авторизованным
         if (empty($allowed)) {
             return true;
         }

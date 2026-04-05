@@ -14,10 +14,6 @@ class TrainingGroupService extends BaseService
         return TrainingGroup::class;
     }
 
-    /**
-     * Создание группы обучения.
-     * По умолчанию считаем, что новая группа запланирована
-     */
     public function create(array $data): TrainingGroup
     {
         $data['status'] = $data['status'] ?? TrainingStatus::Planned->value;
@@ -25,9 +21,6 @@ class TrainingGroupService extends BaseService
         return TrainingGroup::create($data);
     }
 
-    /**
-     * Смена статуса с проверкой допустимых переходов.
-     */
     public function changeStatus(TrainingGroup $group, TrainingStatus $newStatus): TrainingGroup
     {
         if (! $group->status->canTransitionTo($newStatus)) {
@@ -41,17 +34,11 @@ class TrainingGroupService extends BaseService
         return $group->fresh();
     }
 
-    /**
-     * Группы с конфликтами расписания (тот же курс, пересечение дат).
-     */
     public function findConflicts(TrainingGroup $group): Collection
     {
         return TrainingGroup::conflictsWith($group)->get();
     }
 
-    /**
-     * Удаление группы с каскадным удалением участников.
-     */
     public function delete(\Illuminate\Database\Eloquent\Model $group): bool
     {
         $group->participants()->delete();

@@ -10,9 +10,6 @@ use Modules\Course\Transformers\CoursePriceResource;
 
 class CoursePriceController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
 
     public function __construct(
         private readonly CoursePriceService $coursePriceService,
@@ -33,9 +30,6 @@ class CoursePriceController extends BaseController
         return view('course::index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(CoursePriceRequest $request, int $courseId)
     {
         $result = $this->coursePriceService->create($request->validated(), $courseId);
@@ -48,29 +42,17 @@ class CoursePriceController extends BaseController
         );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request) {}
 
-    /**
-     * Show the specified resource.
-     */
     public function show($id)
     {
         return view('course::show');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id)
     {
         return view('course::edit');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id) {}
 }

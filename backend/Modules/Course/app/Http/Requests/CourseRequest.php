@@ -7,9 +7,6 @@ use Modules\Core\Abstracts\Http\Requests\BaseFormRequest;
 
 class CourseRequest extends BaseFormRequest
 {
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         $courseId = $this->route('id');

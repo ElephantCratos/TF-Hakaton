@@ -12,11 +12,6 @@ class AnalyticsController extends Controller
         private readonly AnalyticsService $analyticsService
     ) {}
 
-    /**
-     * GET /api/analytics/companies
-     *
-     * Сводная аналитика по всем компаниям.
-     */
     public function companies(): JsonResponse
     {
         $data = $this->analyticsService->companySummary();
@@ -28,11 +23,6 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    /**
-     * GET /api/analytics/companies/{id}
-     *
-     * Детальная аналитика по конкретной компании.
-     */
     public function companyDetail(int $id): JsonResponse
     {
         $data = $this->analyticsService->companyDetail($id);
